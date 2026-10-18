@@ -4221,7 +4221,7 @@ function hsdEnvMap(cfg){
   env.USE_BANGUMI_DATA = "false";
   env.SEARCH_CACHE_MINUTES = String(cfg.searchCacheMinutes || 3);
   env.COMMENT_CACHE_MINUTES = String(cfg.commentCacheMinutes || 3);
-  env.SOURCE_ORDER = String(cfg.sourceOrder || "tencent,iqiyi,youku,bilibili,migu,imgo,sohu,xigua,douban,360,renren,hanjutv"); /* P6: 平台直搜全覆盖（原默认仅 douban,360,renren,hanjutv，新剧常搜不到） */
+  env.SOURCE_ORDER = String(cfg.sourceOrder || "tencent,iqiyi,youku,bilibili,migu,imgo,xigua,douban,360,renren"); /* P6: 平台直搜全覆盖（原默认仅 douban,360,renren,hanjutv，新剧常搜不到） */
   env.RATE_LIMIT_MAX_REQUESTS = String(cfg.rateLimitMaxRequests != null ? cfg.rateLimitMaxRequests : 0); /* P6: 关闭 danmu 本地 IP 限流（默认3次/分，本地自用一次匹配需6请求必超限） */
   return env;
 }
@@ -4311,7 +4311,7 @@ function hsdPolyfillWeb(){
     if (needsResp) {
       function HSDResponse(body, init){
         init = init || {};
-        this._body = body == null ? "" : body;
+        this._body = body == null ? "" : body; this._raw = (init && init.__rawBody) ? init.__rawBody : null;
         this.status = Number(init.status || 200);
         this.ok = this.status >= 200 && this.status < 300;
         this.headers = (init.headers && typeof init.headers.forEach === "function") ? init.headers : new g.Headers(init.headers || {});
@@ -4320,6 +4320,11 @@ function hsdPolyfillWeb(){
       HSDResponse.prototype.text = function(){ return Promise.resolve(String(this._body)); };
       HSDResponse.prototype.json = function(){ try { return Promise.resolve(JSON.parse(String(this._body))); } catch (e) { return Promise.reject(e); } };
       HSDResponse.prototype.arrayBuffer = function(){
+        if (this._raw && Buffer.isBuffer(this._raw)) {
+          var b = this._raw, ab = new ArrayBuffer(b.length), u8b = new Uint8Array(ab);
+          for (var j = 0; j < b.length; j++) u8b[j] = b[j];
+          return Promise.resolve(ab);
+        }
         var s = String(this._body), buf = new ArrayBuffer(s.length), u8 = new Uint8Array(buf);
         for (var i = 0; i < s.length; i++) u8[i] = s.charCodeAt(i) & 0xFF;
         return Promise.resolve(buf);
@@ -4369,12 +4374,12 @@ function hsdPolyfillWeb(){
               var chunks = [];
               res.on("data", function(c){ chunks.push(c); });
               res.on("end", function(){
-                try { ok(new g.Response(Buffer.concat(chunks).toString("utf8"), { status: res.statusCode, headers: new g.Headers(res.headers) })); } catch (e) { fail(e); }
+                try { var __cb = Buffer.concat(chunks); ok(new g.Response(__cb.toString("utf8"), { status: res.statusCode, headers: new g.Headers(res.headers), __rawBody: __cb })); } catch (e) { fail(e); }
               });
               res.on("error", fail);
             });
             rq.on("error", fail);
-            var tid = setTimeout(function(){ try { rq.destroy(new Error("fetch polyfill: timeout")); } catch (e) {} fail(new Error("fetch polyfill: timeout")); }, Number(init._timeout || 20000));
+            var tid = setTimeout(function(){ try { rq.destroy(new Error("fetch polyfill: timeout")); } catch (e) {} fail(new Error("fetch polyfill: timeout")); }, Number(init._timeout || 12000));
             rq.on("close", function(){ if (tid) { clearTimeout(tid); tid = null; } });
             var sg = init.signal;
             if (sg && sg.aborted) { fail(sg.reason || new Error("AbortError")); return; }
