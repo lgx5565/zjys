@@ -1405,10 +1405,10 @@ async function hshlsPlaylist(url,sid,origin,depth,db){
   __job.then(__clr,__clr);
   return __job;
 }
-async function hshlsPlaylistRaw(url,sid,origin,depth,db){var g=hshlsGate(sid);if(!g)throw Error("unknown session");if(!hshlsAllowed(sid,url))throw Error("forbidden host");var __th=HSHLS_TXT.get(url),__cached=(__th&&Date.now()-__th.at<HSHLS_TXT_TTL)?__th:null,r,text;if(__cached){r={__finalUrl:__cached.eff};text=__cached.text;HSHLS_STATS.txtHits=(HSHLS_STATS.txtHits||0)+1}else{var __tt=Date.now();r=await hshlsGet(url,g.headers,"text",12000).catch(async function(__qe){var __qo=hshlsUnInheritQ(url);if(__qo){hshlsInjqBad(url);return await hshlsGet(__qo,g.headers,"text",12000)}throw __qe});text=typeof r.data==="string"?r.data:Buffer.from(r.data).toString("utf8");hshlsMark("txt",Date.now()-__tt,hshlsHostOf(url))}if(!text.includes("#EXTM3U")){var __qm=hshlsUnInheritQ(url);if(__qm){hshlsInjqBad(url);r=await hshlsGet(__qm,g.headers,"text",12000);text=typeof r.data==="string"?r.data:Buffer.from(r.data).toString("utf8")}}if(!text.includes("#EXTM3U"))throw Error("upstream is not m3u8");if(!__cached&&text.indexOf("#EXT-X-ENDLIST")>=0){try{if(HSHLS_TXT.size>200)HSHLS_TXT.delete(HSHLS_TXT.keys().next().value);HSHLS_TXT.set(url,{text:text,eff:(r&&r.__finalUrl)||url,at:Date.now()})}catch(e){}}text=hshlsStripAds(text);/* ★ 补丁: 302 后一律以「最终地址」为相对 base（直播 m3u8 常跨域 302 + 相对分片）；P4: VOD 清单文本 120s 缓存（防上游配额消耗/重复拉取）*/var __eff=(r&&r.__finalUrl)||url;var hosts=hshlsHosts(text,__eff);hshlsAddHosts(sid,hosts);var lines=text.replace(/\r\n/g,"\n").split("\n"),segments=[],map=[];for(var i=0;i<lines.length;i++){var l=lines[i].trim();if(!l||l[0]==="#"||hshlsM3u8(l)){map[i]=-1;continue}var u=hshlsInheritQ(hshlsUrl(l,__eff),__eff);map[i]=segments.length;segments.push(u)}var isMaster=text.includes("#EXT-X-STREAM-INF")&&segments.length===0,cfg=await hshlsCfg(db);if(!isMaster&&segments.length&&/^https:/i.test(String(url))&&/^https:/i.test(String(segments[0]||url))&&(hshlsIsDirect(url)||hshlsDirectCached(segments[0]))){lines=lines.map(function(l,i){return map[i]>=0?segments[map[i]]:l});}else if(!isMaster&&segments.length&&cfg.enabled){var tsid=hshlsNewSession(segments,g.headers);HSHLS_GATEWAYS.set(tsid,{headers:Object.assign({},g.headers),hosts:new Set(hosts),at:Date.now()});lines=lines.map(function(l,i){return map[i]>=0?origin+"/m3u8-ts?sid="+tsid+"&i="+map[i]:l});sid=tsid;if(cfg.warmFirst!==false){try{var __s=HSHLS_SESSIONS.get(tsid);if(__s&&__s.list&&__s.list.length&&!__s.buf.has(0)&&!__s.strm)hshlsBeginStream(__s,0)}catch(__e){}}}else{lines=lines.map(function(l){var v=l.trim();if(!v||v[0]==="#")return l;var u=hshlsInheritQ(hshlsUrl(v,__eff),__eff);if(hshlsM3u8(u)&&depth<4)return origin+"/m3u8-clean?sid="+encodeURIComponent(sid)+"&url="+encodeURIComponent(u);if(u&&!hshlsM3u8(u))return origin+"/m3u8-ts?sid="+encodeURIComponent(sid)+"&url="+encodeURIComponent(u);return l})}return hshlsRewriteKeys(lines.join("\n"),__eff,sid,origin)}
+async function hshlsPlaylistRaw(url,sid,origin,depth,db){var g=hshlsGate(sid);if(!g)throw Error("unknown session");if(!hshlsAllowed(sid,url))throw Error("forbidden host");var __th=HSHLS_TXT.get(url),__cached=(__th&&Date.now()-__th.at<HSHLS_TXT_TTL)?__th:null,r,text;if(__cached){r={__finalUrl:__cached.eff};text=__cached.text;HSHLS_STATS.txtHits=(HSHLS_STATS.txtHits||0)+1}else{var __tt=Date.now();r=await hshlsGet(url,g.headers,"text",12000).catch(async function(__qe){var __qo=hshlsUnInheritQ(url);if(__qo){hshlsInjqBad(url);return await hshlsGet(__qo,g.headers,"text",12000)}throw __qe});text=typeof r.data==="string"?r.data:Buffer.from(r.data).toString("utf8");hshlsMark("txt",Date.now()-__tt,hshlsHostOf(url))}if(!text.includes("#EXTM3U")){var __qm=hshlsUnInheritQ(url);if(__qm){hshlsInjqBad(url);r=await hshlsGet(__qm,g.headers,"text",12000);text=typeof r.data==="string"?r.data:Buffer.from(r.data).toString("utf8")}}if(!text.includes("#EXTM3U"))throw Error("upstream is not m3u8");if(!__cached&&text.indexOf("#EXT-X-ENDLIST")>=0){try{if(HSHLS_TXT.size>200)HSHLS_TXT.delete(HSHLS_TXT.keys().next().value);HSHLS_TXT.set(url,{text:text,eff:(r&&r.__finalUrl)||url,at:Date.now()})}catch(e){}}text=hshlsStripAds(text);/* ★ 补丁: 302 后一律以「最终地址」为相对 base（直播 m3u8 常跨域 302 + 相对分片）；P4: VOD 清单文本 120s 缓存（防上游配额消耗/重复拉取）*/var __eff=(r&&r.__finalUrl)||url;var hosts=hshlsHosts(text,__eff);hshlsAddHosts(sid,hosts);var lines=text.replace(/\r\n/g,"\n").split("\n"),segments=[],map=[];for(var i=0;i<lines.length;i++){var l=lines[i].trim();if(!l||l[0]==="#"||hshlsM3u8(l)){map[i]=-1;continue}var u=hshlsInheritQ(hshlsUrl(l,__eff),__eff);map[i]=segments.length;segments.push(u)}var isMaster=text.includes("#EXT-X-STREAM-INF")&&segments.length===0,cfg=await hshlsCfg(db);if(!isMaster&&segments.length&&/^https:/i.test(String(url))&&/^https:/i.test(String(segments[0]||url))&&__hsRouteAllowDirect(url,segments[0])){lines=lines.map(function(l,i){return map[i]>=0?segments[map[i]]:l});}else if(!isMaster&&segments.length&&cfg.enabled){var tsid=hshlsNewSession(segments,g.headers);HSHLS_GATEWAYS.set(tsid,{headers:Object.assign({},g.headers),hosts:new Set(hosts),at:Date.now()});lines=lines.map(function(l,i){return map[i]>=0?origin+"/m3u8-ts?sid="+tsid+"&i="+map[i]:l});sid=tsid;if(cfg.warmFirst!==false){try{var __s=HSHLS_SESSIONS.get(tsid);if(__s&&__s.list&&__s.list.length&&!__s.buf.has(0)&&!__s.strm)hshlsBeginStream(__s,0)}catch(__e){}}}else{lines=lines.map(function(l){var v=l.trim();if(!v||v[0]==="#")return l;var u=hshlsInheritQ(hshlsUrl(v,__eff),__eff);if(hshlsM3u8(u)&&depth<4)return origin+"/m3u8-clean?sid="+encodeURIComponent(sid)+"&url="+encodeURIComponent(u);if(u&&!hshlsM3u8(u))return origin+"/m3u8-ts?sid="+encodeURIComponent(sid)+"&url="+encodeURIComponent(u);return l})}return hshlsRewriteKeys(lines.join("\n"),__eff,sid,origin)}
 function hshlsWrap(url,headers,req){if(!hshlsM3u8(url)||hshlsLocal(url)||!/^https?:\/\//i.test(url))return url;var host;try{host=new URL(url).hostname.toLowerCase()}catch(e){return url}if(host==="127.0.0.1"||host==="localhost"||host==="::1"||host==="[::1]"||host==="0.0.0.0")return url;var sid=hshlsGateway(headers,[host]);return hshlsOrigin(req)+"/m3u8-clean?sid="+sid+"&url="+encodeURIComponent(url)}
 function hshlsUnwrapLocal(url){try{var u=new URL(String(url||""));var h=u.hostname.toLowerCase();if(h!=="127.0.0.1"&&h!=="localhost"&&h!=="::1"&&h!=="[::1]"&&h!=="0.0.0.0")return null;if(!/\/m3u8$/i.test(u.pathname))return null;var inner=u.searchParams.get("url");if(!inner||!/^https?:\/\//i.test(inner)||hshlsLocal(inner)||!hshlsM3u8(inner))return null;var ih;try{ih=new URL(inner).hostname.toLowerCase()}catch(e){return null}if(ih==="127.0.0.1"||ih==="localhost"||ih==="::1"||ih==="[::1]"||ih==="0.0.0.0")return null;return{url:inner,ref:u.searchParams.get("ref")||u.searchParams.get("referer")||""}}catch(e){return null}}
-function hshlsRewritePlay(req,obj){if(!obj||typeof obj!=="object")return null;var path=String(req.url||"").split("?")[0],parts=path.split("/").filter(Boolean);if(parts.length<4||parts[0]!=="spider"||parts[3]!=="play"||Number(parts[2])!==3||parts[1]==="liveSource"||parts[1]==="qrcode")return null;if(typeof obj.url==="string"&&obj.url){var __pu=obj.url,__bad=false;if(__pu.indexOf("****")>=0)__bad=true;else if(/^https?:\/\//i.test(__pu)){try{var __ph=new URL(__pu).hostname;if(!__ph||__ph.indexOf("*")>=0||!/\./.test(__ph))__bad=true}catch(__e1){__bad=true}}if(__bad){obj.url="";obj.message=obj.message||"上游解析返回无效地址，请重试或切换线路";return obj}}var headers=obj.header&&typeof obj.header==="object"?obj.header:{},changed=false;var fix=function(x){var uw=hshlsUnwrapLocal(x);if(uw){var h2=headers;if(uw.ref&&!h2.Referer&&!h2.referer)h2=Object.assign({},headers,{Referer:uw.ref});var w=hshlsWrap(uw.url,h2,req);return w!==uw.url?w:x}var u=hshlsWrap(x,headers,req);return u!==x?u:x};if(typeof obj.url==="string"){var nu=fix(obj.url);if(nu!==obj.url){obj.url=nu;changed=true}}if(Array.isArray(obj.urls))obj.urls=obj.urls.map(function(x){if(typeof x!=="string")return x;var nu=fix(x);if(nu!==x)changed=true;return nu});return changed?obj:null}
+function hshlsRewritePlay(req,obj){if(!obj||typeof obj!=="object")return null;var path=String(req.url||"").split("?")[0],parts=path.split("/").filter(Boolean);if(parts.length<4||parts[0]!=="spider"||parts[3]!=="play"||Number(parts[2])!==3||parts[1]==="liveSource"||parts[1]==="qrcode")return null;if(typeof obj.url==="string"&&obj.url){var __pu=obj.url,__bad=false;if(__pu.indexOf("****")>=0)__bad=true;else if(/^https?:\/\//i.test(__pu)){try{var __ph=new URL(__pu).hostname;if(!__ph||__ph.indexOf("*")>=0||!/\./.test(__ph))__bad=true}catch(__e1){__bad=true}}if(__bad){obj.url="";obj.message=obj.message||"上游解析返回无效地址，请重试或切换线路";return obj}}var headers=obj.header&&typeof obj.header==="object"?obj.header:{},changed=false;var fix=function(x){var uw=hshlsUnwrapLocal(x);if(uw){var h2=headers;if(uw.ref&&!h2.Referer&&!h2.referer)h2=Object.assign({},headers,{Referer:uw.ref});var w=hshlsWrap(uw.url,h2,req);return w!==uw.url?w:x}var u=hshlsWrap(x,headers,req);return u!==x?u:x};if(typeof obj.url==="string"){var nu=fix(obj.url);if(nu!==obj.url){obj.url=nu;changed=true}}if(Array.isArray(obj.urls))obj.urls=obj.urls.map(function(x){if(typeof x!=="string")return x;var nu=fix(x);if(nu!==x)changed=true;return nu});try{__hsRouteTrackPlay(req,obj)}catch(e){}return changed?obj:null}
 /* ===== ★ v6 统计上报：服务主动推送，iPhone 也能被观测 ===== */
 var HSJS_REPORT_URL = "https://ntfy.sh/hsstats-mplay-1940639e1a7b3fc7";
 var HSJS_REPORT_EVERY = 5 * 60 * 1000, HSJS_REPORT_LAST = 0, HSJS_REPORT_N = 0;
@@ -1434,7 +1434,7 @@ function hsjsReport() {
     if (now - HSJS_REPORT_LAST < HSJS_REPORT_EVERY) return;
     HSJS_REPORT_LAST = now;
     var snap = hshlsStatsSnapshot();
-    snap.ver = "v6"; snap.n = ++HSJS_REPORT_N; snap.host = "";
+    snap.ver = "v15"; snap.n = ++HSJS_REPORT_N; snap.host = "";
     try { snap.host = require("node:os").hostname(); } catch (e) { }
     hsjsHttpPost(HSJS_REPORT_URL, JSON.stringify(snap));
   } catch (e) { }
@@ -1447,6 +1447,8 @@ function hshlsStatsSnapshot(){
   });
   return {
     at: Date.now(),
+    route: __HS_ROUTE.stats(),
+    routes: __HS_ROUTE.brief(15),
     stats: {
       hits: HSHLS_STATS.hits || 0, misses: HSHLS_STATS.misses || 0,
       fetchErrors: HSHLS_STATS.fetchErrors || 0, prefetched: HSHLS_STATS.prefetched || 0,
@@ -1472,11 +1474,235 @@ try { process.on("exit", hshlsStatsSave); } catch (e) { }
 
 function hshlsStats(){var bufferedTs=0,bufferedBytes=0,inflight=0;HSHLS_SESSIONS.forEach(function(v){bufferedTs+=v.buf.size;inflight+=v.fly.size;try{v.buf.forEach(function(b){bufferedBytes+=(b&&b.length)||0})}catch(e){}});var __hs=[];HSHLS_HOSTS.forEach(function(v,k){__hs.push({host:k,segMs:hshlsMed(v.seg||[]),txtMs:hshlsMed(v.txt||[]),segKbps:hshlsMed(v.kbps||[]),n:(v.seg||[]).length})});__hs.sort(function(a,b){return b.segMs-a.segMs});return Object.assign({sessions:HSHLS_SESSIONS.size,bufferedTs:bufferedTs,bufferedBytes:bufferedBytes,inflight:inflight,slowHosts:__hs.slice(0,15),txtMs:hshlsMed(HSHLS_TIMING.txt),segMs:hshlsMed(HSHLS_TIMING.seg),txtN:HSHLS_TIMING.txt.length,segN:HSHLS_TIMING.seg.length,txtFly:HSHLS_TXT_FLY.size},HSHLS_STATS)}
 function hshlsRegisterWebsite(app){
- app.get("/website/m3u8",async function(req,rep){if(String(req.headers.accept||"").includes("text/html"))return rep.code(404).type("text/plain; charset=utf-8").send("404 Not Found \u2014 \u8be5\u9875\u9762\u5df2\u79fb\u9664\uff0c\u8bf7\u8bbf\u95ee /website/");return rep.send({code:0,data:{settings:await hshlsCfg(app.db,true),stats:hshlsStats()}})});
+ app.get("/website/m3u8",async function(req,rep){if(String(req.headers.accept||"").includes("text/html"))return rep.code(404).type("text/plain; charset=utf-8").send("404 Not Found \u2014 \u8be5\u9875\u9762\u5df2\u79fb\u9664\uff0c\u8bf7\u8bbf\u95ee /website/");return rep.send({code:0,data:{settings:await hshlsCfg(app.db,true),stats:hshlsStats(),route:__HS_ROUTE.stats()}})});
  app.post("/website/m3u8/settings",async function(req,rep){try{var cfg=hshlsClampCfg(Object.assign({},req.body||{},{enabled:!!(req.body&&req.body.enabled)}));await app.db.push("/systemSettings/m3u8Accel",cfg);HSHLS_CFG=cfg;HSHLS_CFG_AT=Date.now();return rep.send({code:0,message:"配置保存成功，已生效",data:{settings:cfg}})}catch(e){return rep.code(500).send({code:-1,message:"保存失败: "+e.message})}});
  app.post("/website/m3u8/reset",async function(req,rep){var cfg=Object.assign({},HSHLS_DEFAULT);await app.db.push("/systemSettings/m3u8Accel",cfg);HSHLS_CFG=cfg;HSHLS_CFG_AT=Date.now();return rep.send({code:0,message:"已恢复默认参数",data:{settings:cfg}})});
 }
-function hshlsRegister(app){app.get("/m3u8-clean",async function(req,rep){var sid=String(req.query.sid||""),url=String(req.query.url||"");if(!sid||!url)return rep.code(400).send("missing sid or url");try{var out=await hshlsPlaylist(url,sid,hshlsOrigin(req),0,req.server.db);return rep.header("Content-Type","application/vnd.apple.mpegurl; charset=utf-8").header("Access-Control-Allow-Origin","*").header("Cache-Control","no-store").send(out)}catch(e){return rep.code(502).send(e.message)}});app.get("/m3u8-ts",async function(req,rep){var sid=String(req.query.sid||""),i=req.query.i===undefined?-1:Number(req.query.i),url=String(req.query.url||"");if(i>=0){await hshlsCfg(req.server.db);if(HSHLS_CFG.streamFirst!==false){var __s=HSHLS_SESSIONS.get(sid);if(__s&&!__s.buf.has(i)&&(!__s.fly.has(i)||(__s.strm&&__s.strm.i===i))){var __st=await hshlsStreamSegment(__s,i,req,rep);if(__st)return}}var r=await hshlsSegmentReply(sid,i,String(req.headers.range||""));Object.keys(r.headers).forEach(function(k){rep.header(k,r.headers[k])});return rep.code(r.status).send(r.body)}var g=hshlsGate(sid);if(!g||!url||!hshlsAllowed(sid,url))return rep.code(403).send("forbidden");try{return rep.header("Content-Type","video/MP2T").send(hshlsBuffer((await hshlsGet(url,g.headers,"arraybuffer",20000)).data))}catch(e){var __uk=hshlsUnInheritQ(url);if(__uk){try{hshlsInjqBad(url);return rep.header("Content-Type","video/MP2T").send(hshlsBuffer((await hshlsGet(__uk,g.headers,"arraybuffer",20000)).data))}catch(__ue){}}return rep.code(502).send(e.message)}});app.get("/m3u8-asset",async function(req,rep){var sid=String(req.query.sid||""),url=String(req.query.url||""),g=hshlsGate(sid);if(!g||!url||!hshlsAllowed(sid,url))return rep.code(403).send("forbidden");try{var r=await hshlsGet(url,g.headers,"arraybuffer",20000);return rep.header("Content-Type",r.headers["content-type"]||"application/octet-stream").send(hshlsBuffer(r.data))}catch(e){return rep.code(502).send(e.message)}});app.get("/m3u8-accel/status",async function(req){return{code:0,data:Object.assign({config:await hshlsCfg(req.server.db),sessions:HSHLS_SESSIONS.size},HSHLS_STATS)}});app.put("/m3u8-accel/settings",async function(req){var cfg=hshlsClampCfg(req.body||{});await req.server.db.push("/systemSettings/m3u8Accel",cfg);HSHLS_CFG=cfg;HSHLS_CFG_AT=Date.now();return{code:0,data:cfg}});/* ★ v35.9-SF：搜索相关性收窄 —— 治理上游单字模糊搜索带出的不匹配结果 */var HSJS_SF_A="丟丣並乗乹乾亁亂亙亝亞亱亷亾佇佈佔併來侖侶侷俁係俔俠俥俬俻倀倆倈倉個倐們倖倣倫倸偉側偵偽傑傖傘備傚傢傭傯傳傴債傷傾僂僅僉僊働僑僕僞僥僨僱價儀儁儂億儈儉儌儎儐儔儕儘償優儲儷儺儻儼兇兌兎兒兗兠內兩冄冊冐冑冪冺凈凍凜凢凱凴別刦刧刪刼剄則剉剋剎剏剗剙剛剝剮剳剴創剷剹劃劄劇劉劊劌劍劑劒効勁勅勌動務勛勝勞勢勦勩勱勳勵勸勻匟匭匯匱匲匳區協卹卻卽厀厙厠厤厭厰厲厴參叄叢吒吚吳吶呂呌呪咊咼員哶唄唕唘唚唸啎問啑啓啗啞啟啢啣喚喪喫喬單喲嗁嗆嗇嗊嗎嗚嗩嗶嘆嘍嘑嘓嘔嘖嘗嘜嘠嘩嘮嘯嘰嘵嘷嘸嘽噁噉噓噝噠噥噦噯噲噴噸噹嚀嚇嚌嚐嚕嚙嚥嚦嚨嚮嚲嚳嚴嚶囀囁囂囅囈囉囌囑囓囙囪圅圇國圍園圓圖團坿垜垻埡埰執堅堊堖堝堯報場塊塋塏塒塗塚塟塢塤塲塵塹墊墖墜墮墰墳墶墻墾壇壋壎壓壘壙壚壜壞壟壠壢壩壪壯壺壻壼壽夘夠夢夥夾奐奧奩奪奬奮奼妝妬妳妷姉姍姙姦姪姸娛婁婣婦婬婭媍媧媯媼媽媿嫋嫗嫰嫵嫺嫻嫿嬀嬃嬈嬋嬌嬙嬝嬡嬤嬪嬭嬰嬸嬾孃孌孫學孼孿宂宮寀寃寑寢實寧審寫寬寳寵寶尅將專尋對導尒尙尟尠尷屆屍屓屛屜屢層屨屬屭岅岡峝峯峴島峽崍崑崗崙崢崬嵐嵗嶁嶃嶄嶇嶔嶗嶠嶢嶧嶨嶮嶸嶺嶼嶽巋巒巔巖巰巵巹帀帋帥師帬帳帶幀幃幇幑幗幘幙幚幟幣幫幬幹幾庫庻庽廁廂廄廈廎廐廕廚廝廟廠廡廢廣廩廬廳廵廹廻弒弔弳張強彆彈彌彎彔彙彞彠彥彫彲彿徃後徑從徠徧復徵徹怱怳恆恠恡恥悅悞悤悵悶悽惏惡惥惱惲惷惻愛愜愨愴愷愽愾慄態慍慘慙慚慟慣慤慪慫慮慳慴慶慼慽慾憂憇憊憐憑憒憖憚憤憫憮憲憶懇應懌懍懞懟懣懨懲懶懷懸懺懼懾戀戇戔戞戧戩戰戱戲戶戹扞抝拋拚挩挱挵挾捄捨捫捱捲掃掄掗掙掛採掽揀揑揚換揫揮揯揷揹搆搇搉損搖搗搤搥搨搯搵搶搾摃摑摜摟摯摳摶摺摻撈撏撐撓撟撡撣撥撦撫撲撳撻撾撿擁擄擇擊擋擔擕據擠擣擧擬擯擰擱擲擴擷擺擻擼擾攄攆攏攔攖攙攛攜攝攢攣攤攩攪攬攷敂敍敎敓敗敘敵數敺斂斃斆斕斬斷於旂旣旤旹旾昇昬時晉晝暈暉暘暢暫暱曄曆曇曉曏曖曠曡曨曬書會朞朢朧朮朶東杴枱枴柵柺査栁栞栢栰桒桮桺桿梔梘條梟梲棄棊棖棗棟棧棲棶椏椗椶椷椾楊楓楥楨業極榘榦榪榮榲榿構槍槓槕槤槧槨槮槳槶槼樁樂樅樑樓標樞樣樧樳樸樹樺樿橈橋橜機橢橫檁檉檔檜檟檢檣檮檯檳檸檻櫃櫈櫓櫚櫛櫝櫞櫟櫥櫧櫨櫪櫫櫬櫱櫳櫸櫻欄欅權欏欒欖欝欞欵欽歎歐歛歟歡歲歴歷歸歿殀殘殞殤殫殭殮殯殲殺殻殼毀毆毧毬毿氂氈氊氌氣氫氬氳氷氾汎汙汚決沒沖況泝洩洶浹涇涖涗涼淒淚淛淥淨淩淪淵淶淺渖渙減渢渦測渾湊湞湧湯湼溈準溝溫溮溳溼滄滅滌滎滙滛滬滯滲滷滸滻滾滿漁漊漚漢漣漬漲漵漸漿潁潄潑潔潙潛潤潯潰潷潿澀澁澆澇澐澗澠澤澦澩澮澱濁濃濇濕濘濚濛濜濟濤濫濰濱濶濺濼濾瀂瀅瀆瀉瀋瀏瀕瀘瀝瀟瀠瀦瀧瀨瀰瀲瀾灃灄灋灑灕灘灝灠灣灤灧灩災為烏烖烴無煉煑煒煗煙煢煥煩煬熅熈熒熗熱熲熾燁燄燈燉燒燙燜營燦燬燭燴燻燼燾爍爐爗爛爭爲爺爾牀牆牋牎牐牓牕牘牠牴牽犖犛犢犧狀狥狹狽猂猙猨猶猻獁獃獄獅獎獘獧獨獪獫獮獰獲獵獷獸獺獻獼玀玅現琖琱琺琿瑇瑋瑒瑣瑤瑩瑪瑯瑲璉璡璢璣璦璫環璵璸璽璿瓊瓏瓔瓚甌甎甕甖甞產産甦甯畂畆畝畢畧畫畮異畱畵當疇疊疎疘疿痐痙痠痲痺痾瘂瘉瘋瘍瘓瘖瘞瘡瘧瘮瘲瘺瘻療癄癅癆癇癈癉癒癘癟癡癢癤癥癧癩癬癭癮癰癱癲發皁皐皚皜皰皷皸皺盃盇盌盜盞盡監盤盧盪眎眞眡眥眾睏睜睞睠睪瞇瞖瞘瞞瞭瞶瞼矁矇矓矙矚矯矽砲硃硜硤硨硯碕碩碪碭碸確碼磑磚磟磠磣磧磯磽礄礆礎礙礦礪礫礬礱祕祘祿禍禎禕禡禦禪禮禰禱禿秈秊秌秖稅稈稉稜稟稬稭種稱稾穀穌積穎穠穡穢穤穨穩穫穭穽窓窩窪窮窯窰窵窶窺窻竄竅竇竈竊竝竢竪競筆筍筞筧筩筯箇箋箏箒箠節範築篋篔篛篠篤篩篳簀簍簑簒簞簡簣簫簮簷簹簽簾籃籌籐籙籛籜籟籠籤籩籪籬籮籲粃粧粵糉糝糞糧糰糲糴糶糹糾紀紂約紅紆紇紈紉紋納紐紓純紕紖紗紘紙級紛紜紝紡紥紮細紱紲紳紵紹紺紼紿絀終絃組絆絎絏結絕絛絝絞絡絢給絨絰統絲絳絶絹綁綃綆綈綉綌綏綑經綜綞綠綢綣綫綬維綯綰綱網綳綴綵綸綹綺綻綽綾綿緄緇緊緋緐緑緒緓緔緗緘緙線緜緝緞締緡緣緥緦編緩緬緯緱緲練緶緹緻緼縈縉縊縋縐縑縕縗縛縝縞縟縣縧縫縭縮縱縲縴縵縶縷縹總績繃繅繆繒織繕繖繙繚繞繡繢繦繩繪繫繭繮繯繰繳繹繼繽繾纇纈纊續纍纏纓纔纖纘纜缐缽罇罈罋罌罎罰罵罷罸羅羆羈羋羗羢羣羥羨義羶翄習翫翬翶翹翽耡耬耮聖聞聯聰聲聳聵聶職聹聽聾肅肎肐肧胷脃脅脇脈脗脛脣脩脫脹腁腎腖腡腦腫腳腸膃膓膕膚膠膩膽膾膿臈臉臋臍臏臕臘臙臚臝臟臠臢臥臨臯臺與興舉舊舖舘舩艙艢艤艦艪艫艱艷芲芻茘茲荊荳莊莖莢莧菫華菴菸萇萊萬萲萴萵葉葒葠葤葦葯葷蒐蒓蒔蒕蒞蒼蓀蓆蓋蓡蓮蓯蓴蓽蔔蔕蔘蔞蔣蔥蔦蔭蕁蕆蕎蕒蕓蕕蕘蕚蕢蕩蕪蕭蕷蕿薀薈薊薌薑薔薘薟薦薩薴薹薺藍藎藝藥藪藴藶藹藺藼蘀蘄蘆蘇蘊蘋蘐蘓蘚蘞蘢蘤蘭蘺蘿虆處虛虜號虧虯蚘蛕蛺蛻蜆蜋蜖蜨蝕蝟蝦蝨蝯蝱蝸螄螎螞螡螢螻螿蟁蟄蟇蟈蟎蟣蟬蟯蟲蟶蟻蠁蠅蠆蠍蠏蠐蠑蠒蠔蠟蠣蠨蠭蠱蠶蠻衂衆衇衊術衕衚衛衝衞衺袞袟袵裊裌裏補裝裠裡製複褌褘褭褲褳褸褻襃襇襉襍襏襖襝襠襤襪襬襯襲襴覇覈覊見覎規覓覔視覘覡覥覦覩親覬覯覲覷覺覽覿觀觝觴觶觸訁訂訃計訊訌討訐訒訓訕訖託記訛訝訟訣訥訩訪設許訴訶診註証詁詆詎詐詒詔評詖詗詘詛詞詠詡詢詣試詩詫詬詭詮詰話該詳詵詶詼詿誄誅誆誇誌認誑誒誕誖誘誚語誠誡誣誤誥誦誨說説誰課誶誹誼誾調諂諄談諉請諍諏諑諒論諗諛諜諝諞諡諢諤諦諧諫諭諮諱諳諶諷諸諺諼諾謀謁謂謄謅謊謌謎謐謔謖謗謙謚講謝謠謡謨謫謬謭謳謹謾譁證譌譎譏譔譖識譙譚譜譟譫譭譯議譴護譸譽譾讀讁讅變讋讎讐讒讓讕讖讚讜讞讬谘豈豎豐豓豔豬豶貍貓貛貝貞貟負財貢貧貨販貪貫責貯貰貲貳貴貶買貸貺費貼貽貿賀賁賂賃賄賅資賈賉賊賑賒賓賕賙賚賛賜賞賠賡賢賣賤賦賧質賫賬賭賴賵賷賺賻購賽賾贄贅贇贈贊贋贍贏贐贓贔贖贗贛贜赬趂趕趙趨趲跡跥踁踐踫踰踴蹌蹏蹕蹟蹠蹣蹤蹧蹵蹺躂躉躊躋躍躑躒躓躕躚躡躥躦躪躭躳躶軀車軋軌軍軑軒軔軛軟軤軫軲軸軹軺軻軼軾較輅輇輈載輊輒輓輔輕輙輛輜輝輞輟輥輦輩輪輬輭輯輳輸輻輼輾輿轀轂轄轅轆轉轍轎轔轟轡轢轤辠辢辤辦辭辮辯農辳迴迻逈逕這連逥逩逬週進遉遊運過達違遙遜遞遠遡適遯遲遶遷選遺遼邁還邇邊邏邐郟郵鄆鄉鄒鄔鄖鄧鄭鄰鄲鄴鄶鄺酇酈酖酧醃醆醕醖醜醞醟醣醫醬醯醱醻醼釀釁釃釅釋釐釒釓釔釕釗釘釙針釣釤釦釧釩釬釵釷釹釺鈀鈁鈃鈄鈅鈈鈉鈍鈎鈐鈑鈒鈔鈕鈞鈡鈣鈥鈦鈧鈮鈰鈳鈴鈷鈸鈹鈺鈽鈾鈿鉀鉄鉅鉆鉈鉉鉋鉍鉑鉕鉗鉚鉛鉞鉢鉤鉦鉬鉭鉲鉳鉶鉸鉺鉻鉿銀銃銅銍銑銓銖銘銚銛銜銠銣銥銦銨銩銪銫銬銱銲銳銷銹銻銼鋁鋂鋃鋅鋇鋌鋏鋒鋙鋝鋟鋣鋤鋥鋦鋨鋩鋪鋭鋮鋯鋰鋱鋶鋸鋼錁錄錆錇錈錏錐錒錕錘錙錚錛錟錠錡錢錦錨錩錫錮錯録錳錶錸錼鍀鍁鍃鍅鍆鍇鍈鍊鍋鍍鍔鍘鍚鍛鍠鍤鍥鍩鍫鍬鍰鍳鍵鍶鍺鍼鍾鎂鎄鎇鎊鎌鎔鎖鎗鎘鎚鎛鎝鎡鎢鎣鎦鎧鎩鎪鎬鎭鎮鎰鎲鎳鎵鎸鎻鎿鏃鏇鏈鏌鏍鏐鏑鏗鏘鏜鏝鏞鏟鏡鏢鏤鏨鏰鏵鏷鏹鏽鐃鐋鐐鐒鐓鐔鐘鐙鐝鐠鐦鐧鐨鐫鐮鐲鐳鐵鐶鐸鐺鐿鑀鑄鑊鑌鑑鑒鑔鑕鑚鑛鑞鑠鑣鑤鑥鑭鑰鑱鑲鑵鑷鑹鑼鑽鑾鑿钁钂钜锺镟長門閂閃閆閈閉開閌閎閏閑閒間閔閘閙閡閣閤閥閧閨閩閫閬閭閱閲閶閹閻閼閽閾閿闃闆闇闈闊闋闌闍闐闒闓闔闕闖闚關闞闠闡闢闤闥阨阬陗陘陜陝陞陣陰陳陸陻陽陿隂隄隉隊階隕隖際隣隨險隯隱隴隷隸隻雋雖雙雛雜雞離難雲電霑霢霧霽靂靄靆靈靉靚靜靝靦靨靭靱鞀鞏鞝鞦鞵鞽韁韃韆韈韉韋韌韍韓韙韜韝韞韤韮韻響頁頂頃項順頇須頊頌頎頏預頑頒頓頗領頜頟頡頤頦頭頮頰頲頴頷頸頹頻頼頽顆顇顋題額顎顏顒顓顔願顙顛類顢顥顦顧顫顬顯顰顱顳顴風颭颮颯颱颳颶颸颺颻颼飀飃飄飆飈飛飜飠飢飣飤飥飩飪飫飭飯飱飲飴飼飽飾飿餁餃餄餅餈餉養餌餎餏餑餒餓餕餖餘餚餛餜餞餡館餬餱餳餵餶餷餹餺餻餼餽餾餿饁饃饅饈饉饊饋饌饍饑饒饗饜饝饞饢馀馬馭馮馱馳馴馹駁駈駐駑駒駔駕駘駙駛駝駟駡駢駭駰駱駸駿騁騂騅騌騍騎騏騐騖騙騣騤騫騭騮騰騶騷騸騾驀驁驂驃驄驅驊驌驍驏驕驗驘驚驛驟驢驤驥驦驪驫骯骽骾髈髏髒體髕髖髥髮鬀鬆鬉鬍鬚鬢鬥鬦鬧鬨鬩鬪鬮鬰鬱鬹魎魘魚魛魢魨魯魴魷魺鮁鮃鮊鮋鮍鮎鮐鮑鮒鮓鮚鮜鮝鮞鮦鮪鮫鮭鮮鮳鮶鮺鯀鯁鯇鯉鯊鯒鯔鯕鯖鯗鯛鯝鯡鯢鯤鯧鯨鯪鯫鯰鯴鯷鯽鯿鰁鰂鰃鰈鰉鰍鰏鰐鰒鰓鰛鰜鰟鰠鰣鰥鰨鰩鰭鰮鰱鰲鰳鰵鰷鰹鰺鰻鰼鰾鱂鱅鱈鱉鱒鱔鱖鱗鱘鱝鱟鱠鱣鱤鱧鱨鱭鱯鱷鱸鱺鳥鳧鳩鳬鳲鳳鳴鳶鴆鴇鴈鴉鴒鴕鴛鴝鴞鴟鴣鴦鴨鴯鴰鴴鴻鴿鵂鵃鵐鵑鵒鵓鵜鵝鵞鵠鵡鵪鵬鵮鵯鵰鵲鵶鵷鵾鶇鶉鶊鶓鶖鶘鶚鶡鶥鶩鶬鶯鶲鶴鶹鶺鶻鶼鶿鷀鷁鷂鷄鷊鷓鷖鷗鷙鷚鷥鷦鷫鷯鷰鷲鷳鷴鷸鷹鷺鷽鸇鸌鸎鸏鸕鸘鸚鸛鸝鸞鹵鹹鹺鹻鹼鹽麗麥麩麪麫麯麴麵麹麺麼麽黃黌點黨黲黴黶黷黽黿鼂鼃鼇鼈鼉鼕鼴齊齋齎齏齒齔齕齗齙齜齟齠齡齣齦齧齪齬齲齶齷龍龎龐龔龕龜",HSJS_SF_B="丢卯并乘干干干乱亘斋亚夜廉亡伫布占并来仑侣局俣系伣侠伡私备伥俩俫仓个倏们幸仿伦睬伟侧侦伪杰伧伞备效家佣偬传伛债伤倾偻仅佥仙动侨仆伪侥偾雇价仪俊侬亿侩俭侥傤傧俦侪尽偿优储俪傩傥俨凶兑兔儿兖兜内两冉册冒胄幂泯净冻凛凡凯凭别劫劫删劫刭则锉克刹创刬创刚剥剐札剀创铲戮划札剧刘刽刿剑剂剑效劲敕倦动务勋胜劳势剿勚劢勋励劝匀炕匦汇匮奁奁区协恤却即膝厍厕历厌厂厉厣参叁丛咤咿吴呐吕叫咒和呙员咩呗唣启吣念忤问喋启啖哑启唡衔唤丧吃乔单哟啼呛啬唝吗呜唢哔叹喽呼啯呕啧尝唛嘎哗唠啸叽哓嗥呒啴恶啖嘘咝哒哝哕嗳哙喷吨当咛吓哜尝噜啮咽呖咙向亸喾严嘤啭嗫嚣冁呓啰苏嘱啮因囱函囵国围园圆图团附垛坝垭采执坚垩垴埚尧报场块茔垲埘涂冢葬坞埙场尘堑垫塔坠堕坛坟垯墙垦坛垱埙压垒圹垆坛坏垄垅坜坝塆壮壶婿壸寿卯够梦伙夹奂奥奁夺奖奋姹妆妒你侄姊姗妊奸侄妍娱娄姻妇淫娅妇娲妫媪妈愧袅妪嫩妩娴娴婳妫媭娆婵娇嫱袅嫒嬷嫔奶婴婶懒娘娈孙学孽孪冗宫采冤寝寝实宁审写宽宝宠宝克将专寻对导尔尚鲜鲜尴届尸屃屏屉屡层屦属屃坂冈峒峰岘岛峡崃昆岗仑峥岽岚岁嵝崭崭岖嵚崂峤峣峄峃崄嵘岭屿岳岿峦巅岩巯卮卺匝纸帅师裙帐带帧帏帮徽帼帻幕帮帜币帮帱干几库庶寓厕厢厩厦庼厩荫厨厮庙厂庑废广廪庐厅巡迫回弑吊弪张强别弹弥弯录汇彝彟彦雕彨佛往后径从徕遍复征彻匆恍恒怪吝耻悦悮匆怅闷凄婪恶恿恼恽蠢恻爱惬悫怆恺博忾栗态愠惨惭惭恸惯悫怄怂虑悭慑庆戚戚欲忧憩惫怜凭愦慭惮愤悯怃宪忆恳应怿懔蒙怼懑恹惩懒怀悬忏惧慑恋戆戋戛戗戬战戯戏户厄捍拗抛拼捝挲弄挟救舍扪挨卷扫抡挜挣挂采碰拣捏扬换揪挥搄插背构揿榷损摇捣扼捶拓掏揾抢榨扛掴掼搂挚抠抟折掺捞挦撑挠挢操掸拨扯抚扑揿挞挝捡拥掳择击挡担携据挤捣举拟摈拧搁掷扩撷摆擞撸扰摅撵拢拦撄搀撺携摄攒挛摊挡搅揽考叩叙教敚败叙敌数驱敛毙敩斓斩断于旗既祸时春升昏时晋昼晕晖旸畅暂昵晔历昙晓向暧旷叠昽晒书会期望胧术朵东锨台拐栅拐查柳刊柏筏桑杯柳杆栀枧条枭棁弃棋枨枣栋栈栖梾桠碇棕缄笺杨枫楦桢业极矩干杩荣榅桤构枪杠桌梿椠椁椮桨椢椝桩乐枞梁楼标枢样榝桪朴树桦椫桡桥橛机椭横檩柽档桧槚检樯梼台槟柠槛柜凳橹榈栉椟橼栎橱槠栌枥橥榇蘖栊榉樱栏榉权椤栾榄郁棂款钦叹欧敛欤欢岁历历归殁夭残殒殇殚僵殓殡歼杀壳壳毁殴绒球毵牦毡毡氇气氢氩氲冰泛泛污污决没冲况溯泄汹浃泾莅涚凉凄泪浙渌净凌沦渊涞浅沈涣减沨涡测浑凑浈涌汤涅沩准沟温浉涢湿沧灭涤荥汇淫沪滞渗卤浒浐滚满渔溇沤汉涟渍涨溆渐浆颍漱泼洁沩潜润浔溃滗涠涩涩浇涝沄涧渑泽滪泶浍淀浊浓涩湿泞溁蒙浕济涛滥潍滨阔溅泺滤澛滢渎泻沈浏濒泸沥潇潆潴泷濑弥潋澜沣滠法洒漓滩灏漤湾滦滟滟灾为乌灾烃无炼煮炜暖烟茕焕烦炀煴熙荧炝热颎炽烨焰灯炖烧烫焖营灿毁烛烩熏烬焘烁炉烨烂争为爷尔床墙笺窗闸榜窗牍它抵牵荦牦犊牺状徇狭狈悍狰猿犹狲犸呆狱狮奖毙狷独狯猃狝狞获猎犷兽獭献猕猡妙现盏雕珐珲玳玮玚琐瑶莹玛琅玱琏琎瑠玑瑷珰环玙瑸玺璇琼珑璎瓒瓯砖瓮罂尝产产苏宁亩亩亩毕略画亩异留画当畴叠疏肛痱蛔痉酸痳痹疴痖愈疯疡痪喑瘗疮疟瘆疭瘘瘘疗憔瘤痨痫废瘅愈疠瘪痴痒疖症疬癞癣瘿瘾痈瘫癫发皂皋皑皓疱鼓皲皱杯盍碗盗盏尽监盘卢荡视真视眦众困睁睐眷睾眯翳眍瞒了瞆睑瞅蒙眬瞰瞩矫硅炮朱硁硖砗砚埼硕砧砀砜确码硙砖碌硵碜碛矶硗硚硷础碍矿砺砾矾砻秘算禄祸祯祎祃御禅礼祢祷秃籼年秋只税秆粳棱禀糯秸种称稿谷稣积颖秾穑秽糯颓稳获穞阱窗窝洼穷窑窑窎窭窥窗窜窍窦灶窃并俟竖竞笔笋策笕筒箸个笺筝帚棰节范筑箧筼箬筿笃筛筚箦篓蓑篡箪简篑箫簪檐筜签帘篮筹藤箓篯箨籁笼签笾簖篱箩吁秕妆粤粽糁粪粮团粝籴粜纟纠纪纣约红纡纥纨纫纹纳纽纾纯纰纼纱纮纸级纷纭纴纺扎扎细绂绁绅纻绍绀绋绐绌终弦组绊绗绁结绝绦绔绞络绚给绒绖统丝绛绝绢绑绡绠绨绣绤绥捆经综缍绿绸绻线绶维绹绾纲网绷缀彩纶绺绮绽绰绫绵绲缁紧绯繁绿绪绬绱缃缄缂线绵缉缎缔缗缘褓缌编缓缅纬缑缈练缏缇致缊萦缙缢缒绉缣缊缞缚缜缟缛县绦缝缡缩纵缧纤缦絷缕缥总绩绷缫缪缯织缮伞翻缭绕绣缋襁绳绘系茧缰缳缲缴绎继缤缱颣缬纩续累缠缨才纤缵缆线钵樽坛瓮罂坛罚骂罢罚罗罴羁芈羌绒群羟羡义膻翅习玩翚翱翘翙锄耧耢圣闻联聪声耸聩聂职聍听聋肃肯胳胚胸脆胁胁脉吻胫唇修脱胀胼肾胨脶脑肿脚肠腽肠腘肤胶腻胆脍脓腊脸臀脐膑膘腊胭胪裸脏脔臜卧临皋台与兴举旧铺馆船舱樯舣舰橹舻艰艳花刍荔兹荆豆庄茎荚苋堇华庵烟苌莱万萱荝莴叶荭参荮苇药荤搜莼莳蒀莅苍荪席盖参莲苁莼荜卜蒂参蒌蒋葱茑荫荨蒇荞荬芸莸荛萼蒉荡芜萧蓣萱蕰荟蓟芗姜蔷荙莶荐萨苧苔荠蓝荩艺药薮蕴苈蔼蔺萱萚蕲芦苏蕴苹萱苏藓蔹茏花兰蓠萝蔂处虚虏号亏虬蛔蛔蛱蜕蚬螂蛔蝶蚀猬虾虱猿虻蜗蛳融蚂蚊萤蝼螀蚊蛰蟆蝈螨虮蝉蛲虫蛏蚁蚃蝇虿蝎蟹蛴蝾茧蚝蜡蛎蟏蜂蛊蚕蛮衄众脉蔑术同胡卫冲卫邪衮帙衽袅袷里补装裙里制复裈袆袅裤裢褛亵褒裥裥杂袯袄裣裆褴袜摆衬袭襕霸核羁见觃规觅觅视觇觋觍觎睹亲觊觏觐觑觉览觌观抵觞觯触讠订讣计讯讧讨讦讱训讪讫托记讹讶讼诀讷讻访设许诉诃诊注证诂诋讵诈诒诏评诐诇诎诅词咏诩询诣试诗诧诟诡诠诘话该详诜酬诙诖诔诛诓夸志认诳诶诞悖诱诮语诚诫诬误诰诵诲说说谁课谇诽谊訚调谄谆谈诿请诤诹诼谅论谂谀谍谞谝谥诨谔谛谐谏谕咨讳谙谌讽诸谚谖诺谋谒谓誊诌谎歌谜谧谑谡谤谦谥讲谢谣谣谟谪谬谫讴谨谩哗证讹谲讥撰谮识谯谭谱噪谵毁译议谴护诪誉谫读谪谉变詟雠雠谗让谰谶赞谠谳托咨岂竖丰艳艳猪豮狸猫獾贝贞贠负财贡贫货贩贪贯责贮贳赀贰贵贬买贷贶费贴贻贸贺贲赂赁贿赅资贾恤贼赈赊宾赇赒赉赞赐赏赔赓贤卖贱赋赕质赍账赌赖赗赍赚赙购赛赜贽赘赟赠赞赝赡赢赆赃赑赎赝赣赃赪趁赶赵趋趱迹跺胫践碰逾踊跄蹄跸迹跖蹒踪糟蹴跷跶趸踌跻跃踯跞踬蹰跹蹑蹿躜躏耽躬裸躯车轧轨军轪轩轫轭软轷轸轱轴轵轺轲轶轼较辂辁辀载轾辄挽辅轻辄辆辎辉辋辍辊辇辈轮辌软辑辏输辐辒辗舆辒毂辖辕辘转辙轿辚轰辔轹轳罪辣辞办辞辫辩农农回移迥迳这连回奔迸周进侦游运过达违遥逊递远溯适遁迟绕迁选遗辽迈还迩边逻逦郏邮郓乡邹邬郧邓郑邻郸邺郐邝酂郦鸩酬腌盏醇酝丑酝蒏糖医酱酰酦酬宴酿衅酾酽释厘钅钆钇钌钊钉钋针钓钐扣钏钒焊钗钍钕钎钯钫钘钭钥钚钠钝钩钤钣钑钞钮钧钟钙钬钛钪铌铈钶铃钴钹铍钰钚铀钿钾铁巨钻铊铉铇铋铂钷钳铆铅钺钵钩钲钼钽锎锫铏铰铒铬铪银铳铜铚铣铨铢铭铫铦衔铑铷铱铟铵铥铕铯铐铞焊锐销锈锑锉铝镅锒锌钡铤铗锋铻锊锓铘锄锃锔锇铓铺锐铖锆锂铽锍锯钢锞录锖锫锩铔锥锕锟锤锱铮锛锬锭锜钱锦锚锠锡锢错录锰表铼镎锝锨锪钫钔锴锳炼锅镀锷铡钖锻锽锸锲锘锹锹锾鉴键锶锗针钟镁锿镅镑镰镕锁枪镉锤镈锝镃钨蓥镏铠铩锼镐镇镇镒镋镍镓镌锁镎镞旋链镆镙镠镝铿锵镗镘镛铲镜镖镂錾镚铧镤镪锈铙铴镣铹镦镡钟镫镢镨锎锏镄镌镰镯镭铁镮铎铛镱锿铸镬镔鉴鉴镲锧钻矿镴铄镳刨镥镧钥镵镶罐镊镩锣钻銮凿镢镋巨钟旋长门闩闪闫闬闭开闶闳闰闲闲间闵闸闹阂阁合阀哄闺闽阃阆闾阅阅阊阉阎阏阍阈阌阒板暗闱阔阕阑阇阗阘闿阖阙闯窥关阚阓阐辟阛闼厄坑峭陉陕陕升阵阴陈陆堙阳狭阴堤陧队阶陨坞际邻随险陦隐陇隶隶只隽虽双雏杂鸡离难云电沾霡雾霁雳霭叇灵叆靓静靔腼靥韧韧鼗巩绱秋鞋鞒缰鞑千袜鞯韦韧韨韩韪韬鞲韫袜韭韵响页顶顷项顺顸须顼颂颀颃预顽颁顿颇领颌额颉颐颏头颒颊颋颕颔颈颓频赖颓颗悴腮题额颚颜颙颛颜愿颡颠类颟颢憔顾颤颥显颦颅颞颧风飐飑飒台刮飓飔飏飖飕飗飘飘飙飚飞翻饣饥饤饲饦饨饪饫饬饭飧饮饴饲饱饰饳饪饺饸饼糍饷养饵饹饻饽馁饿馂饾余肴馄馃饯馅馆糊糇饧喂馉馇糖馎糕饩馈馏馊馌馍馒馐馑馓馈馔膳饥饶飨餍馍馋馕余马驭冯驮驰驯驲驳驱驻驽驹驵驾骀驸驶驼驷骂骈骇骃骆骎骏骋骍骓骔骒骑骐验骛骗鬃骙骞骘骝腾驺骚骟骡蓦骜骖骠骢驱骅骕骁骣骄验骡惊驿骤驴骧骥骦骊骉肮腿鲠膀髅脏体髌髋髯发剃松鬃胡须鬓斗斗闹哄阋斗阄郁郁鬶魉魇鱼鱽鱾鲀鲁鲂鱿鲄鲅鲆鲌鲉鲏鲇鲐鲍鲋鲊鲒鲘鲞鲕鲖鲔鲛鲑鲜鲓鲪鲝鲧鲠鲩鲤鲨鲬鲻鲯鲭鲞鲷鲴鲱鲵鲲鲳鲸鲮鲰鲶鲺鳀鲫鳊鳈鲗鳂鲽鳇鳅鲾鳄鳆鳃鳁鳒鳑鳋鲥鳏鳎鳐鳍鳁鲢鳌鳓鳘鲦鲣鲹鳗鳛鳔鳉鳙鳕鳖鳟鳝鳜鳞鲟鲼鲎鲙鳣鳡鳢鲿鲚鳠鳄鲈鲡鸟凫鸠凫鸤凤鸣鸢鸩鸨雁鸦鸰鸵鸳鸲鸮鸱鸪鸯鸭鸸鸹鸻鸿鸽鸺鸼鹀鹃鹆鹁鹈鹅鹅鹄鹉鹌鹏鹐鹎雕鹊鸦鹓鹍鸫鹑鹒鹋鹙鹕鹗鹖鹛鹜鸧莺鹟鹤鹠鹡鹘鹣鹚鹚鹢鹞鸡鹝鹧鹥鸥鸷鹨鸶鹪鹔鹩燕鹫鹇鹇鹬鹰鹭鸴鹯鹱莺鹲鸬鹴鹦鹳鹂鸾卤咸鹾碱碱盐丽麦麸面面曲曲面曲面么么黄黉点党黪霉黡黩黾鼋鼌蛙鳌鳖鼍冬鼹齐斋赍齑齿龀龁龂龅龇龃龆龄出龈啮龊龉龋腭龌龙厐庞龚龛龟";var HSJS_SF_SN="张王李赵刘陈杨黄周吴徐孙胡朱高林何郭马罗梁宋郑谢韩唐冯于董萧程曹袁邓许傅沈曾彭吕苏卢蒋蔡贾丁魏薛叶阎余潘杜戴夏钟汪田任姜范方石姚谭廖邹熊金陆郝孔白崔康毛邱秦江史顾侯邵孟龙万段雷钱汤尹黎易常武乔贺赖龚文欧朴肖靳关鹿迪景倪佟鞠檀玄裴";var HSJS_SF_T2S=(function(){var m={};for(var i=0;i<HSJS_SF_A.length;i++){m[HSJS_SF_A.charAt(i)]=HSJS_SF_B.charAt(i)}return m})();
+/* ===== ★ v15 线路判定：直连 / 代理（证据优先，探测后台跑，决策同步） ===== */
+var __HS_ROUTE = (function () {
+  var OK_TTL = 6 * 3600e3, NO_TTL = 30 * 60e3, MP_TTL = 7 * 24 * 3600e3;
+  var FAIL_N = 2, PF_N = 3, PLAY_WIN = 90e3;
+  var M = new Map(), P = new Set(), SEEN = new Map();
+  var FILE = null, T0 = Date.now(), STAT = { pick: 0, direct: 0, proxy: 0, probe: 0, fail: 0, ok: 0 };
+
+  function routeFile() {
+    if (FILE !== null) return FILE;
+    try { FILE = require("path").join(hsjsDir(), "__route.json"); } catch (e) { FILE = ""; }
+    return FILE;
+  }
+  function load() {
+    try {
+      var f = routeFile(); if (!f) return;
+      var fs = require("fs"); if (!fs.existsSync(f)) return;
+      var o = JSON.parse(fs.readFileSync(f, "utf8")) || {};
+      Object.keys(o).forEach(function (k) { if (o[k] && typeof o[k] === "object") M.set(k, o[k]); });
+    } catch (e) { }
+  }
+  var SV = 0, TM = null;
+  function doSave() {
+    SV = Date.now();
+    try {
+      var f = routeFile(); if (!f) return;
+      var o = {}; M.forEach(function (v, k) { o[k] = v; });
+      require("fs").writeFileSync(f, JSON.stringify(o));
+    } catch (e) { }
+    /* ★ 让统计通道知道有变化，否则全直连时 HSHLS_DIRTY 永远不置位、一次都不上报 */
+    try { HSHLS_DIRTY = 1; } catch (e) { }
+  }
+  /* 节流但不丢：不足 5s 时挂一个补写定时器 */
+  function save(force) {
+    if (force) return doSave();
+    var gap = 5000 - (Date.now() - SV);
+    if (gap <= 0) return doSave();
+    if (TM) return;
+    TM = setTimeout(function () { TM = null; doSave(); }, gap);
+    if (TM && TM.unref) TM.unref();
+  }
+  try {
+    if (typeof process !== "undefined" && process.on) process.on("exit", function () { try { if (TM) { TM = null; doSave(); } } catch (e) { } });
+  } catch (e) { }
+  function hostOf(u) {
+    try {
+      var s = String(u || "");
+      var h = s.indexOf("://") >= 0 ? new URL(s).hostname : s.split("/")[0];
+      return String(h).toLowerCase().replace(/\.$/, "");
+    } catch (e) { return ""; }
+  }
+  function kindOf(b) {
+    if (!b || !b.length) return "empty";
+    var i = 0;
+    while (i < b.length && (b[i] === 10 || b[i] === 13 || b[i] === 32 || b[i] === 9)) i++;
+    var x = b.slice(i, i + 16);
+    if (!x.length) return "empty";
+    if (x[0] === 0x89 && x[1] === 0x50 && x[2] === 0x4e && x[3] === 0x47) return "png";
+    if (x[0] === 0xff && x[1] === 0xd8) return "jpeg";
+    if (x.slice(0, 7).toString("latin1").toUpperCase() === "#EXTM3U") return "m3u8";
+    if (x[0] === 0x3c) return "html";
+    if (x.slice(0, 3).toString("latin1") === "FLV") return "flv";
+    if (x[0] === 0x47) return "ts";
+    if (x.length >= 8) {
+      var t = x.slice(4, 8).toString("latin1");
+      if (t === "ftyp" || t === "moov" || t === "mdat" || t === "styp") return "mp4";
+    }
+    return "unknown";
+  }
+  function probeOnce(u, cb) {
+    try {
+      var U = new URL(u);
+      var mod = require(U.protocol === "http:" ? "http" : "https");
+      var req = mod.request({
+        protocol: U.protocol, hostname: U.hostname, port: U.port || (U.protocol === "http:" ? 80 : 443),
+        path: U.pathname + U.search, method: "GET", timeout: 6000,
+        headers: {
+          "User-Agent": "stagefright/1.2 (Linux;Android 13)",
+          "Range": "bytes=0-65535", "Accept": "*/*", "Connection": "close"
+        }
+      }, function (res) {
+        var ch = [], got = 0;
+        res.on("data", function (c) { ch.push(c); got += c.length; if (got >= 65536) { try { res.destroy(); } catch (e) { } } });
+        res.on("end", function () { cb(null, { status: res.statusCode, body: Buffer.concat(ch) }); });
+        res.on("error", function () { cb(null, { status: res.statusCode, body: Buffer.concat(ch) }); });
+      });
+      req.on("timeout", function () { req.destroy(new Error("timeout")); });
+      req.on("error", function (e) { cb(e); });
+      req.end();
+    } catch (e) { cb(e); }
+  }
+  function firstUri(text, base) {
+    var ls = String(text || "").replace(/\r/g, "").split("\n");
+    for (var i = 0; i < ls.length; i++) {
+      var t = ls[i].trim();
+      if (!t || t.charAt(0) === "#") continue;
+      try { return new URL(t, base).href; } catch (e) { return null; }
+    }
+    return null;
+  }
+  /* 探一条线路：清单最多 3 跳，落到分片后判容器签名 */
+  function probeSeries(u, cb, depth) {
+    depth = depth || 0;
+    probeOnce(u, function (err, r) {
+      if (err || !r) return cb(false, "error:" + (err && err.message || err));
+      var k = kindOf(r.body);
+      var st = r.status === 200 || r.status === 206;
+      if (k === "m3u8") {
+        if (depth >= 3) return cb(false, "too-many-hops");
+        var nx = firstUri(r.body.toString("utf8"), u);
+        if (!nx) return cb(false, "empty-playlist");
+        return probeSeries(nx, cb, depth + 1);
+      }
+      var ok = !!(st && r.body && r.body.length && (k === "ts" || k === "mp4" || k === "flv"));
+      cb(ok, ok ? "direct-ok" : (st ? "blocked-as:" + k : "status:" + r.status));
+    });
+  }
+  function deny(host, why, mode) {
+    var r = M.get(host) || { fails: 0 };
+    r.at = Date.now(); r.why = why; r.mode = mode;
+    if (mode === "proxy") r.noCount = PF_N;
+    M.set(host, r); save();
+  }
+  /* 后台探测（single-flight），结果按 host 落表 */
+  function kick(host, segUrl) {
+    if (!host || !segUrl || P.has(host)) return;
+    var r = M.get(host), t = Date.now();
+    if (r) {
+      if (r.mode === "ok" && t - r.at < OK_TTL) return;
+      if (r.mode === "proxy" && t - r.at < MP_TTL) return;
+      if (r.mode === "no" && t - r.at < NO_TTL) return;
+    }
+    P.add(host); STAT.probe++;
+    probeSeries(segUrl, function (ok, why) {
+      P.delete(host);
+      var x = M.get(host) || { fails: 0, noCount: 0 };
+      x.why = why; x.at = Date.now();
+      if (ok) { x.mode = "ok"; x.noCount = 0; }
+      else {
+        x.noCount = (x.noCount || 0) + 1;
+        if (x.noCount >= PF_N) x.mode = "proxy"; else x.mode = "no";
+      }
+      M.set(host, x); save();
+    });
+  }
+  /* 决策：能否让分片直连（等价于原分支1） */
+  function allowDirect(listUrl, segUrl) {
+    try {
+      STAT.pick++;
+      var u = String(listUrl || ""), s = String(segUrl || "");
+      if (!/^https:/i.test(u) || !/^https:/i.test(s)) return false;
+      var h = hostOf(s); if (!h) return false;
+      var t = Date.now(), r = M.get(h);
+      if (r) {
+        if (r.mode === "proxy" && t - r.at < MP_TTL) { STAT.proxy++; return false; }
+        if (r.mode === "ok" && t - r.at < OK_TTL) { STAT.direct++; return true; }
+        if (r.mode === "no" && t - r.at < NO_TTL) { STAT.proxy++; return false; }
+      }
+      if (HSHLS_DIRECT_RE && HSHLS_DIRECT_RE.test(h)) { STAT.direct++; return true; }
+      kick(h, s);            /* 后台探，不阻塞本次 */
+      STAT.proxy++;
+      return false;          /* 无证据先按原行为走代理，探通后下一次直连 */
+    } catch (e) { return false; }
+  }
+  function bumpFail(host, why) {
+    if (!host) return null;
+    var r = M.get(host) || { fails: 0, noCount: 0 };
+    r.fails = (r.fails || 0) + 1; r.lastFail = Date.now(); r.why = why || r.why;
+    STAT.fail++;
+    if (r.fails >= FAIL_N) { r.mode = "proxy"; r.at = Date.now(); }
+    M.set(host, r); save();
+    return r;
+  }
+  function markOk(host) {
+    if (!host) return null;
+    var r = M.get(host) || { fails: 0, noCount: 0 };
+    r.fails = 0; r.noCount = 0; r.mode = "ok"; r.at = Date.now();
+    STAT.ok++;
+    M.set(host, r); save();
+    return r;
+  }
+  /* play 回流：同源同集同 host 在窗口内再次 play = 上次大概率没播成 */
+  function trackPlay(req, obj) {
+    try {
+      if (globalThis.HSJS_ROUTE_TRACK === false) return;
+      /* ★ 预热期的 play 不是用户真实播放：它和用户随后点同一集会构成
+         "90s 内重播" 假信号，必须排除（否则逐条线路被误升级成代理）。 */
+      if (globalThis.__HSJS_WARM_MODE === true) return;
+      if (!req || !obj || typeof obj !== "object") return;
+      var u = String(obj.url || "");
+      if (u.indexOf("/m3u8-clean?") < 0 && u.indexOf("/m3u8-ts?") < 0) return;
+      var inner = "";
+      try { inner = new URL(u).searchParams.get("url") || ""; } catch (e) { }
+      var h = hostOf(inner); if (!h) return;
+      var p = String(req.url || "").split("?")[0].split("/").filter(Boolean);
+      var key = String(p[1] || "") + "|" + String(p[2] || "") + "|" + h;
+      var t = Date.now(), prev = SEEN.get(key);
+      if (prev && t - prev < PLAY_WIN) bumpFail(h, "replay");
+      if (SEEN.size > 600) SEEN.delete(SEEN.keys().next().value);
+      SEEN.set(key, t);
+    } catch (e) { }
+  }
+  function stats() {
+    var h = { ok: 0, proxy: 0, no: 0, total: M.size };
+    M.forEach(function (v) { if (v && v.mode) h[v.mode] = (h[v.mode] || 0) + 1; });
+    return { hosts: h, act: Object.assign({ probing: P.size }, STAT), up: Math.round((Date.now() - T0) / 1000) };
+  }
+  /* 上报用紧凑视图：[host, mode, fails] 三元组，按失败数倒序，限 15 条 */
+  function brief(n) {
+    n = n || 15;
+    var a = [];
+    M.forEach(function (v, k) { if (v && v.mode) a.push([k, v.mode, v.fails || 0]); });
+    a.sort(function (x, y) { return y[2] - x[2]; });
+    return a.slice(0, n);
+  }
+  function reset(h) { if (h) M.delete(hostOf(h)); else M.clear(); save(true); }
+  load();
+  return {
+    allowDirect: allowDirect, trackPlay: trackPlay, bumpFail: bumpFail,
+    markOk: markOk, stats: stats, reset: reset, kick: kick, hostOf: hostOf, flush: doSave, brief: brief
+  };
+})();
+var __hsRouteAllowDirect = function (listUrl, segUrl) { try { return __HS_ROUTE.allowDirect(listUrl, segUrl); } catch (e) { return false; } };
+var __hsRouteTrackPlay = function (req, obj) { try { __HS_ROUTE.trackPlay(req, obj); } catch (e) { } };
+
+function hshlsRegister(app){app.get("/m3u8-fail",async function(req,rep){var h=String(req.query.host||""),u=String(req.query.url||"");try{var hh=h||__HS_ROUTE.hostOf(u);__HS_ROUTE.bumpFail(hh,"explicit");}catch(e){}return rep.send({code:0});});app.get("/m3u8-clean",async function(req,rep){var sid=String(req.query.sid||""),url=String(req.query.url||"");if(!sid||!url)return rep.code(400).send("missing sid or url");try{var out=await hshlsPlaylist(url,sid,hshlsOrigin(req),0,req.server.db);return rep.header("Content-Type","application/vnd.apple.mpegurl; charset=utf-8").header("Access-Control-Allow-Origin","*").header("Cache-Control","no-store").send(out)}catch(e){return rep.code(502).send(e.message)}});app.get("/m3u8-ts",async function(req,rep){var sid=String(req.query.sid||""),i=req.query.i===undefined?-1:Number(req.query.i),url=String(req.query.url||"");if(i>=0){await hshlsCfg(req.server.db);if(HSHLS_CFG.streamFirst!==false){var __s=HSHLS_SESSIONS.get(sid);if(__s&&!__s.buf.has(i)&&(!__s.fly.has(i)||(__s.strm&&__s.strm.i===i))){var __st=await hshlsStreamSegment(__s,i,req,rep);if(__st)return}}var r=await hshlsSegmentReply(sid,i,String(req.headers.range||""));Object.keys(r.headers).forEach(function(k){rep.header(k,r.headers[k])});return rep.code(r.status).send(r.body)}var g=hshlsGate(sid);if(!g||!url||!hshlsAllowed(sid,url))return rep.code(403).send("forbidden");try{return rep.header("Content-Type","video/MP2T").send(hshlsBuffer((await hshlsGet(url,g.headers,"arraybuffer",20000)).data))}catch(e){var __uk=hshlsUnInheritQ(url);if(__uk){try{hshlsInjqBad(url);return rep.header("Content-Type","video/MP2T").send(hshlsBuffer((await hshlsGet(__uk,g.headers,"arraybuffer",20000)).data))}catch(__ue){}}return rep.code(502).send(e.message)}});app.get("/m3u8-asset",async function(req,rep){var sid=String(req.query.sid||""),url=String(req.query.url||""),g=hshlsGate(sid);if(!g||!url||!hshlsAllowed(sid,url))return rep.code(403).send("forbidden");try{var r=await hshlsGet(url,g.headers,"arraybuffer",20000);return rep.header("Content-Type",r.headers["content-type"]||"application/octet-stream").send(hshlsBuffer(r.data))}catch(e){return rep.code(502).send(e.message)}});app.get("/m3u8-accel/status",async function(req){return{code:0,data:Object.assign({config:await hshlsCfg(req.server.db),sessions:HSHLS_SESSIONS.size},HSHLS_STATS)}});app.put("/m3u8-accel/settings",async function(req){var cfg=hshlsClampCfg(req.body||{});await req.server.db.push("/systemSettings/m3u8Accel",cfg);HSHLS_CFG=cfg;HSHLS_CFG_AT=Date.now();return{code:0,data:cfg}});/* ★ v35.9-SF：搜索相关性收窄 —— 治理上游单字模糊搜索带出的不匹配结果 */var HSJS_SF_A="丟丣並乗乹乾亁亂亙亝亞亱亷亾佇佈佔併來侖侶侷俁係俔俠俥俬俻倀倆倈倉個倐們倖倣倫倸偉側偵偽傑傖傘備傚傢傭傯傳傴債傷傾僂僅僉僊働僑僕僞僥僨僱價儀儁儂億儈儉儌儎儐儔儕儘償優儲儷儺儻儼兇兌兎兒兗兠內兩冄冊冐冑冪冺凈凍凜凢凱凴別刦刧刪刼剄則剉剋剎剏剗剙剛剝剮剳剴創剷剹劃劄劇劉劊劌劍劑劒効勁勅勌動務勛勝勞勢勦勩勱勳勵勸勻匟匭匯匱匲匳區協卹卻卽厀厙厠厤厭厰厲厴參叄叢吒吚吳吶呂呌呪咊咼員哶唄唕唘唚唸啎問啑啓啗啞啟啢啣喚喪喫喬單喲嗁嗆嗇嗊嗎嗚嗩嗶嘆嘍嘑嘓嘔嘖嘗嘜嘠嘩嘮嘯嘰嘵嘷嘸嘽噁噉噓噝噠噥噦噯噲噴噸噹嚀嚇嚌嚐嚕嚙嚥嚦嚨嚮嚲嚳嚴嚶囀囁囂囅囈囉囌囑囓囙囪圅圇國圍園圓圖團坿垜垻埡埰執堅堊堖堝堯報場塊塋塏塒塗塚塟塢塤塲塵塹墊墖墜墮墰墳墶墻墾壇壋壎壓壘壙壚壜壞壟壠壢壩壪壯壺壻壼壽夘夠夢夥夾奐奧奩奪奬奮奼妝妬妳妷姉姍姙姦姪姸娛婁婣婦婬婭媍媧媯媼媽媿嫋嫗嫰嫵嫺嫻嫿嬀嬃嬈嬋嬌嬙嬝嬡嬤嬪嬭嬰嬸嬾孃孌孫學孼孿宂宮寀寃寑寢實寧審寫寬寳寵寶尅將專尋對導尒尙尟尠尷屆屍屓屛屜屢層屨屬屭岅岡峝峯峴島峽崍崑崗崙崢崬嵐嵗嶁嶃嶄嶇嶔嶗嶠嶢嶧嶨嶮嶸嶺嶼嶽巋巒巔巖巰巵巹帀帋帥師帬帳帶幀幃幇幑幗幘幙幚幟幣幫幬幹幾庫庻庽廁廂廄廈廎廐廕廚廝廟廠廡廢廣廩廬廳廵廹廻弒弔弳張強彆彈彌彎彔彙彞彠彥彫彲彿徃後徑從徠徧復徵徹怱怳恆恠恡恥悅悞悤悵悶悽惏惡惥惱惲惷惻愛愜愨愴愷愽愾慄態慍慘慙慚慟慣慤慪慫慮慳慴慶慼慽慾憂憇憊憐憑憒憖憚憤憫憮憲憶懇應懌懍懞懟懣懨懲懶懷懸懺懼懾戀戇戔戞戧戩戰戱戲戶戹扞抝拋拚挩挱挵挾捄捨捫捱捲掃掄掗掙掛採掽揀揑揚換揫揮揯揷揹搆搇搉損搖搗搤搥搨搯搵搶搾摃摑摜摟摯摳摶摺摻撈撏撐撓撟撡撣撥撦撫撲撳撻撾撿擁擄擇擊擋擔擕據擠擣擧擬擯擰擱擲擴擷擺擻擼擾攄攆攏攔攖攙攛攜攝攢攣攤攩攪攬攷敂敍敎敓敗敘敵數敺斂斃斆斕斬斷於旂旣旤旹旾昇昬時晉晝暈暉暘暢暫暱曄曆曇曉曏曖曠曡曨曬書會朞朢朧朮朶東杴枱枴柵柺査栁栞栢栰桒桮桺桿梔梘條梟梲棄棊棖棗棟棧棲棶椏椗椶椷椾楊楓楥楨業極榘榦榪榮榲榿構槍槓槕槤槧槨槮槳槶槼樁樂樅樑樓標樞樣樧樳樸樹樺樿橈橋橜機橢橫檁檉檔檜檟檢檣檮檯檳檸檻櫃櫈櫓櫚櫛櫝櫞櫟櫥櫧櫨櫪櫫櫬櫱櫳櫸櫻欄欅權欏欒欖欝欞欵欽歎歐歛歟歡歲歴歷歸歿殀殘殞殤殫殭殮殯殲殺殻殼毀毆毧毬毿氂氈氊氌氣氫氬氳氷氾汎汙汚決沒沖況泝洩洶浹涇涖涗涼淒淚淛淥淨淩淪淵淶淺渖渙減渢渦測渾湊湞湧湯湼溈準溝溫溮溳溼滄滅滌滎滙滛滬滯滲滷滸滻滾滿漁漊漚漢漣漬漲漵漸漿潁潄潑潔潙潛潤潯潰潷潿澀澁澆澇澐澗澠澤澦澩澮澱濁濃濇濕濘濚濛濜濟濤濫濰濱濶濺濼濾瀂瀅瀆瀉瀋瀏瀕瀘瀝瀟瀠瀦瀧瀨瀰瀲瀾灃灄灋灑灕灘灝灠灣灤灧灩災為烏烖烴無煉煑煒煗煙煢煥煩煬熅熈熒熗熱熲熾燁燄燈燉燒燙燜營燦燬燭燴燻燼燾爍爐爗爛爭爲爺爾牀牆牋牎牐牓牕牘牠牴牽犖犛犢犧狀狥狹狽猂猙猨猶猻獁獃獄獅獎獘獧獨獪獫獮獰獲獵獷獸獺獻獼玀玅現琖琱琺琿瑇瑋瑒瑣瑤瑩瑪瑯瑲璉璡璢璣璦璫環璵璸璽璿瓊瓏瓔瓚甌甎甕甖甞產産甦甯畂畆畝畢畧畫畮異畱畵當疇疊疎疘疿痐痙痠痲痺痾瘂瘉瘋瘍瘓瘖瘞瘡瘧瘮瘲瘺瘻療癄癅癆癇癈癉癒癘癟癡癢癤癥癧癩癬癭癮癰癱癲發皁皐皚皜皰皷皸皺盃盇盌盜盞盡監盤盧盪眎眞眡眥眾睏睜睞睠睪瞇瞖瞘瞞瞭瞶瞼矁矇矓矙矚矯矽砲硃硜硤硨硯碕碩碪碭碸確碼磑磚磟磠磣磧磯磽礄礆礎礙礦礪礫礬礱祕祘祿禍禎禕禡禦禪禮禰禱禿秈秊秌秖稅稈稉稜稟稬稭種稱稾穀穌積穎穠穡穢穤穨穩穫穭穽窓窩窪窮窯窰窵窶窺窻竄竅竇竈竊竝竢竪競筆筍筞筧筩筯箇箋箏箒箠節範築篋篔篛篠篤篩篳簀簍簑簒簞簡簣簫簮簷簹簽簾籃籌籐籙籛籜籟籠籤籩籪籬籮籲粃粧粵糉糝糞糧糰糲糴糶糹糾紀紂約紅紆紇紈紉紋納紐紓純紕紖紗紘紙級紛紜紝紡紥紮細紱紲紳紵紹紺紼紿絀終絃組絆絎絏結絕絛絝絞絡絢給絨絰統絲絳絶絹綁綃綆綈綉綌綏綑經綜綞綠綢綣綫綬維綯綰綱網綳綴綵綸綹綺綻綽綾綿緄緇緊緋緐緑緒緓緔緗緘緙線緜緝緞締緡緣緥緦編緩緬緯緱緲練緶緹緻緼縈縉縊縋縐縑縕縗縛縝縞縟縣縧縫縭縮縱縲縴縵縶縷縹總績繃繅繆繒織繕繖繙繚繞繡繢繦繩繪繫繭繮繯繰繳繹繼繽繾纇纈纊續纍纏纓纔纖纘纜缐缽罇罈罋罌罎罰罵罷罸羅羆羈羋羗羢羣羥羨義羶翄習翫翬翶翹翽耡耬耮聖聞聯聰聲聳聵聶職聹聽聾肅肎肐肧胷脃脅脇脈脗脛脣脩脫脹腁腎腖腡腦腫腳腸膃膓膕膚膠膩膽膾膿臈臉臋臍臏臕臘臙臚臝臟臠臢臥臨臯臺與興舉舊舖舘舩艙艢艤艦艪艫艱艷芲芻茘茲荊荳莊莖莢莧菫華菴菸萇萊萬萲萴萵葉葒葠葤葦葯葷蒐蒓蒔蒕蒞蒼蓀蓆蓋蓡蓮蓯蓴蓽蔔蔕蔘蔞蔣蔥蔦蔭蕁蕆蕎蕒蕓蕕蕘蕚蕢蕩蕪蕭蕷蕿薀薈薊薌薑薔薘薟薦薩薴薹薺藍藎藝藥藪藴藶藹藺藼蘀蘄蘆蘇蘊蘋蘐蘓蘚蘞蘢蘤蘭蘺蘿虆處虛虜號虧虯蚘蛕蛺蛻蜆蜋蜖蜨蝕蝟蝦蝨蝯蝱蝸螄螎螞螡螢螻螿蟁蟄蟇蟈蟎蟣蟬蟯蟲蟶蟻蠁蠅蠆蠍蠏蠐蠑蠒蠔蠟蠣蠨蠭蠱蠶蠻衂衆衇衊術衕衚衛衝衞衺袞袟袵裊裌裏補裝裠裡製複褌褘褭褲褳褸褻襃襇襉襍襏襖襝襠襤襪襬襯襲襴覇覈覊見覎規覓覔視覘覡覥覦覩親覬覯覲覷覺覽覿觀觝觴觶觸訁訂訃計訊訌討訐訒訓訕訖託記訛訝訟訣訥訩訪設許訴訶診註証詁詆詎詐詒詔評詖詗詘詛詞詠詡詢詣試詩詫詬詭詮詰話該詳詵詶詼詿誄誅誆誇誌認誑誒誕誖誘誚語誠誡誣誤誥誦誨說説誰課誶誹誼誾調諂諄談諉請諍諏諑諒論諗諛諜諝諞諡諢諤諦諧諫諭諮諱諳諶諷諸諺諼諾謀謁謂謄謅謊謌謎謐謔謖謗謙謚講謝謠謡謨謫謬謭謳謹謾譁證譌譎譏譔譖識譙譚譜譟譫譭譯議譴護譸譽譾讀讁讅變讋讎讐讒讓讕讖讚讜讞讬谘豈豎豐豓豔豬豶貍貓貛貝貞貟負財貢貧貨販貪貫責貯貰貲貳貴貶買貸貺費貼貽貿賀賁賂賃賄賅資賈賉賊賑賒賓賕賙賚賛賜賞賠賡賢賣賤賦賧質賫賬賭賴賵賷賺賻購賽賾贄贅贇贈贊贋贍贏贐贓贔贖贗贛贜赬趂趕趙趨趲跡跥踁踐踫踰踴蹌蹏蹕蹟蹠蹣蹤蹧蹵蹺躂躉躊躋躍躑躒躓躕躚躡躥躦躪躭躳躶軀車軋軌軍軑軒軔軛軟軤軫軲軸軹軺軻軼軾較輅輇輈載輊輒輓輔輕輙輛輜輝輞輟輥輦輩輪輬輭輯輳輸輻輼輾輿轀轂轄轅轆轉轍轎轔轟轡轢轤辠辢辤辦辭辮辯農辳迴迻逈逕這連逥逩逬週進遉遊運過達違遙遜遞遠遡適遯遲遶遷選遺遼邁還邇邊邏邐郟郵鄆鄉鄒鄔鄖鄧鄭鄰鄲鄴鄶鄺酇酈酖酧醃醆醕醖醜醞醟醣醫醬醯醱醻醼釀釁釃釅釋釐釒釓釔釕釗釘釙針釣釤釦釧釩釬釵釷釹釺鈀鈁鈃鈄鈅鈈鈉鈍鈎鈐鈑鈒鈔鈕鈞鈡鈣鈥鈦鈧鈮鈰鈳鈴鈷鈸鈹鈺鈽鈾鈿鉀鉄鉅鉆鉈鉉鉋鉍鉑鉕鉗鉚鉛鉞鉢鉤鉦鉬鉭鉲鉳鉶鉸鉺鉻鉿銀銃銅銍銑銓銖銘銚銛銜銠銣銥銦銨銩銪銫銬銱銲銳銷銹銻銼鋁鋂鋃鋅鋇鋌鋏鋒鋙鋝鋟鋣鋤鋥鋦鋨鋩鋪鋭鋮鋯鋰鋱鋶鋸鋼錁錄錆錇錈錏錐錒錕錘錙錚錛錟錠錡錢錦錨錩錫錮錯録錳錶錸錼鍀鍁鍃鍅鍆鍇鍈鍊鍋鍍鍔鍘鍚鍛鍠鍤鍥鍩鍫鍬鍰鍳鍵鍶鍺鍼鍾鎂鎄鎇鎊鎌鎔鎖鎗鎘鎚鎛鎝鎡鎢鎣鎦鎧鎩鎪鎬鎭鎮鎰鎲鎳鎵鎸鎻鎿鏃鏇鏈鏌鏍鏐鏑鏗鏘鏜鏝鏞鏟鏡鏢鏤鏨鏰鏵鏷鏹鏽鐃鐋鐐鐒鐓鐔鐘鐙鐝鐠鐦鐧鐨鐫鐮鐲鐳鐵鐶鐸鐺鐿鑀鑄鑊鑌鑑鑒鑔鑕鑚鑛鑞鑠鑣鑤鑥鑭鑰鑱鑲鑵鑷鑹鑼鑽鑾鑿钁钂钜锺镟長門閂閃閆閈閉開閌閎閏閑閒間閔閘閙閡閣閤閥閧閨閩閫閬閭閱閲閶閹閻閼閽閾閿闃闆闇闈闊闋闌闍闐闒闓闔闕闖闚關闞闠闡闢闤闥阨阬陗陘陜陝陞陣陰陳陸陻陽陿隂隄隉隊階隕隖際隣隨險隯隱隴隷隸隻雋雖雙雛雜雞離難雲電霑霢霧霽靂靄靆靈靉靚靜靝靦靨靭靱鞀鞏鞝鞦鞵鞽韁韃韆韈韉韋韌韍韓韙韜韝韞韤韮韻響頁頂頃項順頇須頊頌頎頏預頑頒頓頗領頜頟頡頤頦頭頮頰頲頴頷頸頹頻頼頽顆顇顋題額顎顏顒顓顔願顙顛類顢顥顦顧顫顬顯顰顱顳顴風颭颮颯颱颳颶颸颺颻颼飀飃飄飆飈飛飜飠飢飣飤飥飩飪飫飭飯飱飲飴飼飽飾飿餁餃餄餅餈餉養餌餎餏餑餒餓餕餖餘餚餛餜餞餡館餬餱餳餵餶餷餹餺餻餼餽餾餿饁饃饅饈饉饊饋饌饍饑饒饗饜饝饞饢馀馬馭馮馱馳馴馹駁駈駐駑駒駔駕駘駙駛駝駟駡駢駭駰駱駸駿騁騂騅騌騍騎騏騐騖騙騣騤騫騭騮騰騶騷騸騾驀驁驂驃驄驅驊驌驍驏驕驗驘驚驛驟驢驤驥驦驪驫骯骽骾髈髏髒體髕髖髥髮鬀鬆鬉鬍鬚鬢鬥鬦鬧鬨鬩鬪鬮鬰鬱鬹魎魘魚魛魢魨魯魴魷魺鮁鮃鮊鮋鮍鮎鮐鮑鮒鮓鮚鮜鮝鮞鮦鮪鮫鮭鮮鮳鮶鮺鯀鯁鯇鯉鯊鯒鯔鯕鯖鯗鯛鯝鯡鯢鯤鯧鯨鯪鯫鯰鯴鯷鯽鯿鰁鰂鰃鰈鰉鰍鰏鰐鰒鰓鰛鰜鰟鰠鰣鰥鰨鰩鰭鰮鰱鰲鰳鰵鰷鰹鰺鰻鰼鰾鱂鱅鱈鱉鱒鱔鱖鱗鱘鱝鱟鱠鱣鱤鱧鱨鱭鱯鱷鱸鱺鳥鳧鳩鳬鳲鳳鳴鳶鴆鴇鴈鴉鴒鴕鴛鴝鴞鴟鴣鴦鴨鴯鴰鴴鴻鴿鵂鵃鵐鵑鵒鵓鵜鵝鵞鵠鵡鵪鵬鵮鵯鵰鵲鵶鵷鵾鶇鶉鶊鶓鶖鶘鶚鶡鶥鶩鶬鶯鶲鶴鶹鶺鶻鶼鶿鷀鷁鷂鷄鷊鷓鷖鷗鷙鷚鷥鷦鷫鷯鷰鷲鷳鷴鷸鷹鷺鷽鸇鸌鸎鸏鸕鸘鸚鸛鸝鸞鹵鹹鹺鹻鹼鹽麗麥麩麪麫麯麴麵麹麺麼麽黃黌點黨黲黴黶黷黽黿鼂鼃鼇鼈鼉鼕鼴齊齋齎齏齒齔齕齗齙齜齟齠齡齣齦齧齪齬齲齶齷龍龎龐龔龕龜",HSJS_SF_B="丢卯并乘干干干乱亘斋亚夜廉亡伫布占并来仑侣局俣系伣侠伡私备伥俩俫仓个倏们幸仿伦睬伟侧侦伪杰伧伞备效家佣偬传伛债伤倾偻仅佥仙动侨仆伪侥偾雇价仪俊侬亿侩俭侥傤傧俦侪尽偿优储俪傩傥俨凶兑兔儿兖兜内两冉册冒胄幂泯净冻凛凡凯凭别劫劫删劫刭则锉克刹创刬创刚剥剐札剀创铲戮划札剧刘刽刿剑剂剑效劲敕倦动务勋胜劳势剿勚劢勋励劝匀炕匦汇匮奁奁区协恤却即膝厍厕历厌厂厉厣参叁丛咤咿吴呐吕叫咒和呙员咩呗唣启吣念忤问喋启啖哑启唡衔唤丧吃乔单哟啼呛啬唝吗呜唢哔叹喽呼啯呕啧尝唛嘎哗唠啸叽哓嗥呒啴恶啖嘘咝哒哝哕嗳哙喷吨当咛吓哜尝噜啮咽呖咙向亸喾严嘤啭嗫嚣冁呓啰苏嘱啮因囱函囵国围园圆图团附垛坝垭采执坚垩垴埚尧报场块茔垲埘涂冢葬坞埙场尘堑垫塔坠堕坛坟垯墙垦坛垱埙压垒圹垆坛坏垄垅坜坝塆壮壶婿壸寿卯够梦伙夹奂奥奁夺奖奋姹妆妒你侄姊姗妊奸侄妍娱娄姻妇淫娅妇娲妫媪妈愧袅妪嫩妩娴娴婳妫媭娆婵娇嫱袅嫒嬷嫔奶婴婶懒娘娈孙学孽孪冗宫采冤寝寝实宁审写宽宝宠宝克将专寻对导尔尚鲜鲜尴届尸屃屏屉屡层屦属屃坂冈峒峰岘岛峡崃昆岗仑峥岽岚岁嵝崭崭岖嵚崂峤峣峄峃崄嵘岭屿岳岿峦巅岩巯卮卺匝纸帅师裙帐带帧帏帮徽帼帻幕帮帜币帮帱干几库庶寓厕厢厩厦庼厩荫厨厮庙厂庑废广廪庐厅巡迫回弑吊弪张强别弹弥弯录汇彝彟彦雕彨佛往后径从徕遍复征彻匆恍恒怪吝耻悦悮匆怅闷凄婪恶恿恼恽蠢恻爱惬悫怆恺博忾栗态愠惨惭惭恸惯悫怄怂虑悭慑庆戚戚欲忧憩惫怜凭愦慭惮愤悯怃宪忆恳应怿懔蒙怼懑恹惩懒怀悬忏惧慑恋戆戋戛戗戬战戯戏户厄捍拗抛拼捝挲弄挟救舍扪挨卷扫抡挜挣挂采碰拣捏扬换揪挥搄插背构揿榷损摇捣扼捶拓掏揾抢榨扛掴掼搂挚抠抟折掺捞挦撑挠挢操掸拨扯抚扑揿挞挝捡拥掳择击挡担携据挤捣举拟摈拧搁掷扩撷摆擞撸扰摅撵拢拦撄搀撺携摄攒挛摊挡搅揽考叩叙教敚败叙敌数驱敛毙敩斓斩断于旗既祸时春升昏时晋昼晕晖旸畅暂昵晔历昙晓向暧旷叠昽晒书会期望胧术朵东锨台拐栅拐查柳刊柏筏桑杯柳杆栀枧条枭棁弃棋枨枣栋栈栖梾桠碇棕缄笺杨枫楦桢业极矩干杩荣榅桤构枪杠桌梿椠椁椮桨椢椝桩乐枞梁楼标枢样榝桪朴树桦椫桡桥橛机椭横檩柽档桧槚检樯梼台槟柠槛柜凳橹榈栉椟橼栎橱槠栌枥橥榇蘖栊榉樱栏榉权椤栾榄郁棂款钦叹欧敛欤欢岁历历归殁夭残殒殇殚僵殓殡歼杀壳壳毁殴绒球毵牦毡毡氇气氢氩氲冰泛泛污污决没冲况溯泄汹浃泾莅涚凉凄泪浙渌净凌沦渊涞浅沈涣减沨涡测浑凑浈涌汤涅沩准沟温浉涢湿沧灭涤荥汇淫沪滞渗卤浒浐滚满渔溇沤汉涟渍涨溆渐浆颍漱泼洁沩潜润浔溃滗涠涩涩浇涝沄涧渑泽滪泶浍淀浊浓涩湿泞溁蒙浕济涛滥潍滨阔溅泺滤澛滢渎泻沈浏濒泸沥潇潆潴泷濑弥潋澜沣滠法洒漓滩灏漤湾滦滟滟灾为乌灾烃无炼煮炜暖烟茕焕烦炀煴熙荧炝热颎炽烨焰灯炖烧烫焖营灿毁烛烩熏烬焘烁炉烨烂争为爷尔床墙笺窗闸榜窗牍它抵牵荦牦犊牺状徇狭狈悍狰猿犹狲犸呆狱狮奖毙狷独狯猃狝狞获猎犷兽獭献猕猡妙现盏雕珐珲玳玮玚琐瑶莹玛琅玱琏琎瑠玑瑷珰环玙瑸玺璇琼珑璎瓒瓯砖瓮罂尝产产苏宁亩亩亩毕略画亩异留画当畴叠疏肛痱蛔痉酸痳痹疴痖愈疯疡痪喑瘗疮疟瘆疭瘘瘘疗憔瘤痨痫废瘅愈疠瘪痴痒疖症疬癞癣瘿瘾痈瘫癫发皂皋皑皓疱鼓皲皱杯盍碗盗盏尽监盘卢荡视真视眦众困睁睐眷睾眯翳眍瞒了瞆睑瞅蒙眬瞰瞩矫硅炮朱硁硖砗砚埼硕砧砀砜确码硙砖碌硵碜碛矶硗硚硷础碍矿砺砾矾砻秘算禄祸祯祎祃御禅礼祢祷秃籼年秋只税秆粳棱禀糯秸种称稿谷稣积颖秾穑秽糯颓稳获穞阱窗窝洼穷窑窑窎窭窥窗窜窍窦灶窃并俟竖竞笔笋策笕筒箸个笺筝帚棰节范筑箧筼箬筿笃筛筚箦篓蓑篡箪简篑箫簪檐筜签帘篮筹藤箓篯箨籁笼签笾簖篱箩吁秕妆粤粽糁粪粮团粝籴粜纟纠纪纣约红纡纥纨纫纹纳纽纾纯纰纼纱纮纸级纷纭纴纺扎扎细绂绁绅纻绍绀绋绐绌终弦组绊绗绁结绝绦绔绞络绚给绒绖统丝绛绝绢绑绡绠绨绣绤绥捆经综缍绿绸绻线绶维绹绾纲网绷缀彩纶绺绮绽绰绫绵绲缁紧绯繁绿绪绬绱缃缄缂线绵缉缎缔缗缘褓缌编缓缅纬缑缈练缏缇致缊萦缙缢缒绉缣缊缞缚缜缟缛县绦缝缡缩纵缧纤缦絷缕缥总绩绷缫缪缯织缮伞翻缭绕绣缋襁绳绘系茧缰缳缲缴绎继缤缱颣缬纩续累缠缨才纤缵缆线钵樽坛瓮罂坛罚骂罢罚罗罴羁芈羌绒群羟羡义膻翅习玩翚翱翘翙锄耧耢圣闻联聪声耸聩聂职聍听聋肃肯胳胚胸脆胁胁脉吻胫唇修脱胀胼肾胨脶脑肿脚肠腽肠腘肤胶腻胆脍脓腊脸臀脐膑膘腊胭胪裸脏脔臜卧临皋台与兴举旧铺馆船舱樯舣舰橹舻艰艳花刍荔兹荆豆庄茎荚苋堇华庵烟苌莱万萱荝莴叶荭参荮苇药荤搜莼莳蒀莅苍荪席盖参莲苁莼荜卜蒂参蒌蒋葱茑荫荨蒇荞荬芸莸荛萼蒉荡芜萧蓣萱蕰荟蓟芗姜蔷荙莶荐萨苧苔荠蓝荩艺药薮蕴苈蔼蔺萱萚蕲芦苏蕴苹萱苏藓蔹茏花兰蓠萝蔂处虚虏号亏虬蛔蛔蛱蜕蚬螂蛔蝶蚀猬虾虱猿虻蜗蛳融蚂蚊萤蝼螀蚊蛰蟆蝈螨虮蝉蛲虫蛏蚁蚃蝇虿蝎蟹蛴蝾茧蚝蜡蛎蟏蜂蛊蚕蛮衄众脉蔑术同胡卫冲卫邪衮帙衽袅袷里补装裙里制复裈袆袅裤裢褛亵褒裥裥杂袯袄裣裆褴袜摆衬袭襕霸核羁见觃规觅觅视觇觋觍觎睹亲觊觏觐觑觉览觌观抵觞觯触讠订讣计讯讧讨讦讱训讪讫托记讹讶讼诀讷讻访设许诉诃诊注证诂诋讵诈诒诏评诐诇诎诅词咏诩询诣试诗诧诟诡诠诘话该详诜酬诙诖诔诛诓夸志认诳诶诞悖诱诮语诚诫诬误诰诵诲说说谁课谇诽谊訚调谄谆谈诿请诤诹诼谅论谂谀谍谞谝谥诨谔谛谐谏谕咨讳谙谌讽诸谚谖诺谋谒谓誊诌谎歌谜谧谑谡谤谦谥讲谢谣谣谟谪谬谫讴谨谩哗证讹谲讥撰谮识谯谭谱噪谵毁译议谴护诪誉谫读谪谉变詟雠雠谗让谰谶赞谠谳托咨岂竖丰艳艳猪豮狸猫獾贝贞贠负财贡贫货贩贪贯责贮贳赀贰贵贬买贷贶费贴贻贸贺贲赂赁贿赅资贾恤贼赈赊宾赇赒赉赞赐赏赔赓贤卖贱赋赕质赍账赌赖赗赍赚赙购赛赜贽赘赟赠赞赝赡赢赆赃赑赎赝赣赃赪趁赶赵趋趱迹跺胫践碰逾踊跄蹄跸迹跖蹒踪糟蹴跷跶趸踌跻跃踯跞踬蹰跹蹑蹿躜躏耽躬裸躯车轧轨军轪轩轫轭软轷轸轱轴轵轺轲轶轼较辂辁辀载轾辄挽辅轻辄辆辎辉辋辍辊辇辈轮辌软辑辏输辐辒辗舆辒毂辖辕辘转辙轿辚轰辔轹轳罪辣辞办辞辫辩农农回移迥迳这连回奔迸周进侦游运过达违遥逊递远溯适遁迟绕迁选遗辽迈还迩边逻逦郏邮郓乡邹邬郧邓郑邻郸邺郐邝酂郦鸩酬腌盏醇酝丑酝蒏糖医酱酰酦酬宴酿衅酾酽释厘钅钆钇钌钊钉钋针钓钐扣钏钒焊钗钍钕钎钯钫钘钭钥钚钠钝钩钤钣钑钞钮钧钟钙钬钛钪铌铈钶铃钴钹铍钰钚铀钿钾铁巨钻铊铉铇铋铂钷钳铆铅钺钵钩钲钼钽锎锫铏铰铒铬铪银铳铜铚铣铨铢铭铫铦衔铑铷铱铟铵铥铕铯铐铞焊锐销锈锑锉铝镅锒锌钡铤铗锋铻锊锓铘锄锃锔锇铓铺锐铖锆锂铽锍锯钢锞录锖锫锩铔锥锕锟锤锱铮锛锬锭锜钱锦锚锠锡锢错录锰表铼镎锝锨锪钫钔锴锳炼锅镀锷铡钖锻锽锸锲锘锹锹锾鉴键锶锗针钟镁锿镅镑镰镕锁枪镉锤镈锝镃钨蓥镏铠铩锼镐镇镇镒镋镍镓镌锁镎镞旋链镆镙镠镝铿锵镗镘镛铲镜镖镂錾镚铧镤镪锈铙铴镣铹镦镡钟镫镢镨锎锏镄镌镰镯镭铁镮铎铛镱锿铸镬镔鉴鉴镲锧钻矿镴铄镳刨镥镧钥镵镶罐镊镩锣钻銮凿镢镋巨钟旋长门闩闪闫闬闭开闶闳闰闲闲间闵闸闹阂阁合阀哄闺闽阃阆闾阅阅阊阉阎阏阍阈阌阒板暗闱阔阕阑阇阗阘闿阖阙闯窥关阚阓阐辟阛闼厄坑峭陉陕陕升阵阴陈陆堙阳狭阴堤陧队阶陨坞际邻随险陦隐陇隶隶只隽虽双雏杂鸡离难云电沾霡雾霁雳霭叇灵叆靓静靔腼靥韧韧鼗巩绱秋鞋鞒缰鞑千袜鞯韦韧韨韩韪韬鞲韫袜韭韵响页顶顷项顺顸须顼颂颀颃预顽颁顿颇领颌额颉颐颏头颒颊颋颕颔颈颓频赖颓颗悴腮题额颚颜颙颛颜愿颡颠类颟颢憔顾颤颥显颦颅颞颧风飐飑飒台刮飓飔飏飖飕飗飘飘飙飚飞翻饣饥饤饲饦饨饪饫饬饭飧饮饴饲饱饰饳饪饺饸饼糍饷养饵饹饻饽馁饿馂饾余肴馄馃饯馅馆糊糇饧喂馉馇糖馎糕饩馈馏馊馌馍馒馐馑馓馈馔膳饥饶飨餍馍馋馕余马驭冯驮驰驯驲驳驱驻驽驹驵驾骀驸驶驼驷骂骈骇骃骆骎骏骋骍骓骔骒骑骐验骛骗鬃骙骞骘骝腾驺骚骟骡蓦骜骖骠骢驱骅骕骁骣骄验骡惊驿骤驴骧骥骦骊骉肮腿鲠膀髅脏体髌髋髯发剃松鬃胡须鬓斗斗闹哄阋斗阄郁郁鬶魉魇鱼鱽鱾鲀鲁鲂鱿鲄鲅鲆鲌鲉鲏鲇鲐鲍鲋鲊鲒鲘鲞鲕鲖鲔鲛鲑鲜鲓鲪鲝鲧鲠鲩鲤鲨鲬鲻鲯鲭鲞鲷鲴鲱鲵鲲鲳鲸鲮鲰鲶鲺鳀鲫鳊鳈鲗鳂鲽鳇鳅鲾鳄鳆鳃鳁鳒鳑鳋鲥鳏鳎鳐鳍鳁鲢鳌鳓鳘鲦鲣鲹鳗鳛鳔鳉鳙鳕鳖鳟鳝鳜鳞鲟鲼鲎鲙鳣鳡鳢鲿鲚鳠鳄鲈鲡鸟凫鸠凫鸤凤鸣鸢鸩鸨雁鸦鸰鸵鸳鸲鸮鸱鸪鸯鸭鸸鸹鸻鸿鸽鸺鸼鹀鹃鹆鹁鹈鹅鹅鹄鹉鹌鹏鹐鹎雕鹊鸦鹓鹍鸫鹑鹒鹋鹙鹕鹗鹖鹛鹜鸧莺鹟鹤鹠鹡鹘鹣鹚鹚鹢鹞鸡鹝鹧鹥鸥鸷鹨鸶鹪鹔鹩燕鹫鹇鹇鹬鹰鹭鸴鹯鹱莺鹲鸬鹴鹦鹳鹂鸾卤咸鹾碱碱盐丽麦麸面面曲曲面曲面么么黄黉点党黪霉黡黩黾鼋鼌蛙鳌鳖鼍冬鼹齐斋赍齑齿龀龁龂龅龇龃龆龄出龈啮龊龉龋腭龌龙厐庞龚龛龟";var HSJS_SF_SN="张王李赵刘陈杨黄周吴徐孙胡朱高林何郭马罗梁宋郑谢韩唐冯于董萧程曹袁邓许傅沈曾彭吕苏卢蒋蔡贾丁魏薛叶阎余潘杜戴夏钟汪田任姜范方石姚谭廖邹熊金陆郝孔白崔康毛邱秦江史顾侯邵孟龙万段雷钱汤尹黎易常武乔贺赖龚文欧朴肖靳关鹿迪景倪佟鞠檀玄裴";var HSJS_SF_T2S=(function(){var m={};for(var i=0;i<HSJS_SF_A.length;i++){m[HSJS_SF_A.charAt(i)]=HSJS_SF_B.charAt(i)}return m})();
 var HSJS_SF_WS=/[\s\u3000]+/g,HSJS_SF_PUNC=/[\u0021-\u002f\u003a-\u0040\u005b-\u0060\u007b-\u007e\u00b7\u2010-\u2015\u2018\u2019\u201c\u201d\u2026\u2025\u2212\u30fb\u3001\u3002\u3008-\u300f\u3010-\u301b\u301c\u301d-\u301f\ufe00-\ufe0f\ufe30\ufe31\u2600-\u27bf\u2b00-\u2bff\u306e\uff01-\uff0f\uff1a-\uff20\uff3b-\uff40\uff5b-\uff65]+/g,HSJS_SF_CJK=/[\u3400-\u9fff\uf900-\ufaff]/;
 function hsjsSfNorm(s){s=String(s||"").toLowerCase();var t="";for(var i=0;i<s.length;i++){var c=s.charAt(i),n=c.charCodeAt(0);if(n>=0x2460&&n<=0x2473){t+=String(n-0x245f);continue}if(n>=0xff01&&n<=0xff5e){t+=String.fromCharCode(n-0xfee0);continue}t+=c}t=t.replace(HSJS_SF_WS,"").replace(HSJS_SF_PUNC,"");var o="";for(var j=0;j<t.length;j++){var h=t.charAt(j),q=HSJS_SF_T2S[h];o+=q||h}return o}
 function hsjsSfJudge(T,K){if(!T||!K)return!0;if(T.indexOf(K)>=0||K.indexOf(T)>=0)return!0;var _nm=K.replace(/[0-9]/g,"");if(!HSJS_SF_CJK.test(_nm))return!0;if(/[a-z]/.test(_nm))return!0;if(K.length>=2&&K.length<=4&&/^[\u4e00-\u9fa5]+$/.test(K)&&HSJS_SF_SN.indexOf(K.charAt(0))>=0)return!0;var gt=K.length-1;if(gt<1)return!1;var gh=0;for(var j=0;j<gt;j++){if(T.indexOf(K.slice(j,j+2))>=0)gh++}return gh/gt>=0.4}function hsjsSfFieldHit(it,K){try{var fs=["vod_actor","vod_director","vod_writer","vod_sub"];for(var i=0;i<fs.length;i++){var v=it[fs[i]];if(v==null)continue;v=String(v);if(!v)continue;if(hsjsSfJudge(hsjsSfNorm(v),K))return!0}return!1}catch(e){return!1}}
